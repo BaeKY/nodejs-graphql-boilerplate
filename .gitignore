@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+src/types/graph.d.ts
+src/schema.graphql
+.vscode/
+dist
+yarn-error.log
+src/logs
+logs
+*.log
+*.uri.ts
+*.zip
+*.zip.tmp
+schema.gql
