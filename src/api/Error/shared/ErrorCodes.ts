@@ -1,20 +1,29 @@
+export type ErrorCodes =
+    | CommonErrorCodes
+    | VerificationProcessErrorCodes
+    | UserSignInErrorCodes
+    | UserErrorCode;
+
 export type CommonErrorCodes =
     | "UNDERDEVELOPMENT"
-    | "VALIDATION_FAIL"
+    | "VALIDATION_ERROR"
     | "UNKNOWN_ERROR"
-    | "NOTHING_MATCH_WITH_ID";
+    | "NOTHING_MATCH_WITH_ID"
+    | "EXPIRED_SESSION";
 
 export type VerificationProcessErrorCodes =
     | "UNEXIST_VERIFICATION"
     | "VERIFICATION_FAIL"
     | "VERIFICATION_EXPIRED";
 
+export type UserSignInErrorCodes = "INVALID_EMAIL_OR_PASSWORD";
+
 export type UserErrorCode =
     | "UNDERDEVELOPMENT"
-    | "VALIDATION_ERROR"
     | "INVALID_PARAMS"
     | "CANNOT_FIND_DATA"
     | "UNDEFINED_FIELD"
+    | "ALREADY_SIGNED_UP"
     // TODO: 기존 Error Migration 필요. 필요없는 에러들 제거 ㄱㄱ
     | "ACCESS_DENY_USER"
     | "ACCESS_DENY_STORE"
