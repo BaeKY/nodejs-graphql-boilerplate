@@ -77,21 +77,30 @@ export const AccessLogging: MiddlewareFn<Context> = async (
 };
 
 export const ErrorInterceptor: MiddlewareFn<any> = async (
-    { context, info },
+    { context, info, args },
     next
 ) => {
     try {
         return await next();
     } catch (err) {
-        console.log({
-            message: err.message,
-            operation: info.operation.operation,
-            fieldName: info.fieldName,
-            userName: context.user?.name || "anonymous",
+        const start = Date.now();
+        const formattedLog = logFormat({
+            context,
+            args,
+            info,
+            dateTime: start,
+            resTime: Date.now() - start,
+            data: {
+                name: err.name,
+                message: err.message,
+                stack: err.stack,
+            },
         });
         if (!(err instanceof ArgumentValidationError)) {
             console.log({ err });
             // hide errors from db like printing sql query
+
+            loggerCloudWatch.error(JSON.stringify(formattedLog));
             throw new Error("Unknown error occurred. Try again later!");
         }
         throw err;

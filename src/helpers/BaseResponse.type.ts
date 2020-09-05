@@ -28,6 +28,10 @@ export const GenerateResponseIncludeReturnData = <T>(
             this.errors = error;
         }
 
+        setData(data: T) {
+            this.data = data;
+        }
+
         async setErrorWithAbortSession(error: any, session: ClientSession) {
             this.setError(error);
             await session.abortTransaction();

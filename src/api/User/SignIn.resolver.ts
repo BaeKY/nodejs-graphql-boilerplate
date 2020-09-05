@@ -1,17 +1,8 @@
-import {
-    Resolver,
-    Mutation,
-    Args,
-    ArgsType,
-    Field,
-    Ctx,
-    UseMiddleware,
-} from "type-graphql";
-import { GenerateResponseIncludeReturnData } from "../../../helpers/BaseResponse.type";
-import { User, UserModel } from "../../../models/User/User.type";
-import { UserError } from "../../Error/shared/Error.type";
-import { Context } from "../../../types/types";
-import { ErrorInterceptor } from "../../../middlewares/loggingMiddleware";
+import { Resolver, Mutation, Args, ArgsType, Field, Ctx } from "type-graphql";
+import { GenerateResponseIncludeReturnData } from "../../helpers/BaseResponse.type";
+import { User, UserModel } from "../../models/User/User.type";
+import { UserError } from "../Error/shared/Error.type";
+import { Context } from "../../types/types";
 
 const SignInResponse = GenerateResponseIncludeReturnData(User, "SignIn");
 type SignInResponse = InstanceType<typeof SignInResponse>;
@@ -28,7 +19,6 @@ export class SignInArgs {
 @Resolver()
 export class SignInResolver {
     @Mutation(() => SignInResponse)
-    @UseMiddleware(ErrorInterceptor)
     async SignIn(
         @Args(() => SignInArgs) input: SignInArgs,
         @Ctx() context: Context
@@ -53,10 +43,9 @@ export class SignInResolver {
                 }
             });
             response.setData(user);
-            return response;
         } catch (error) {
             response.setError(error);
-            return response;
         }
+        return response;
     }
 }

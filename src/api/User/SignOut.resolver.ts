@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Ctx } from "type-graphql";
-import { PlainResponse } from "../../../helpers/BaseResponse.type";
-import { Context } from "../../../types/types";
+import { PlainResponse } from "../../helpers/BaseResponse.type";
+import { Context } from "../../types/types";
 
 @Resolver()
 export class SignOutResolver {

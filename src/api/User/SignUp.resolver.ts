@@ -1,17 +1,9 @@
-import {
-    Resolver,
-    Mutation,
-    Field,
-    ArgsType,
-    Args,
-    UseMiddleware,
-} from "type-graphql";
-import { GenerateResponseIncludeReturnData } from "../../../helpers/BaseResponse.type";
-import { User, UserRole, UserModel } from "../../../models/User/User.type";
+import { Resolver, Mutation, Field, ArgsType, Args } from "type-graphql";
+import { GenerateResponseIncludeReturnData } from "../../helpers/BaseResponse.type";
+import { User, UserRole, UserModel } from "../../models/User/User.type";
 import { mongoose } from "@typegoose/typegoose";
-import { ErrorInterceptor } from "../../../middlewares/loggingMiddleware";
-import { validateClass } from "../../../helpers/errorHandling";
-import { UserError } from "../../Error/shared/Error.type";
+import { validateClass } from "../../helpers/errorHandling";
+import { UserError } from "../Error/shared/Error.type";
 
 const SignUpResponse = GenerateResponseIncludeReturnData(User, "SignUp");
 type SignUpResponse = InstanceType<typeof SignUpResponse>;
@@ -36,7 +28,6 @@ export class SignUpInput {
 
 @Resolver()
 export class SignUpResolver {
-    @UseMiddleware(ErrorInterceptor)
     @Mutation(() => SignUpResponse)
     async SignUp(
         @Args(() => SignUpInput) input: SignUpInput
@@ -66,11 +57,14 @@ export class SignUpResolver {
                 );
             }
             await user.save({ session });
-            await response.setDataWithCommitSession(user, session);
-            return response;
+            response.setData(user);
+            await session.commitTransaction();
         } catch (error) {
-            await response.setErrorWithAbortSession(error, session);
-            return response;
+            response.setError(error);
+            await session.abortTransaction();
+        } finally {
+            session.endSession();
         }
+        return response;
     }
 }
