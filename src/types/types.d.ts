@@ -16,7 +16,7 @@ export type Minute = number;
 export type Seconds = number;
 
 export type Context = {
-    user: User;
+    user: DocumentType<User>;
     res: any;
     req: any;
 };

@@ -5,5 +5,5 @@ dotenv.config({
 import { getDBUri, testConn } from "./testConn";
 
 export const dbUri = getDBUri();
-console.log(`setup.ts => ${dbUri}`);
-testConn(dbUri).then(() => process.exit());
+// console.log(`setup.ts => ${dbUri}`);
+// testConn(dbUri).then(() => process.exit());

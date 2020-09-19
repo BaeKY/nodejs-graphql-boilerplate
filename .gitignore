@@ -13,3 +13,5 @@ logs
 *.zip
 *.zip.tmp
 schema.gql
+*.jpg
+*.png

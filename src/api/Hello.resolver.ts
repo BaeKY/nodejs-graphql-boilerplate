@@ -1,5 +1,4 @@
-import { Resolver, Query, Arg, UseMiddleware } from "type-graphql";
-import { AccessLogging } from "../middlewares/loggingMiddleware";
+import { Resolver, Query, Arg } from "type-graphql";
 
 @Resolver()
 export class Hello {
@@ -9,7 +8,6 @@ export class Hello {
     }
 
     @Query(() => String, { name: "TestQuery", description: "Logging Test" })
-    @UseMiddleware(AccessLogging)
     async Test(@Arg("err", () => String) param: string) {
         if (param === "err") {
             throw new Error(`${param}: Error!!`);

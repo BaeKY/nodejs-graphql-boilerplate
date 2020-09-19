@@ -1,10 +1,10 @@
 import { Resolver, Mutation, Args, ArgsType, Field, Ctx } from "type-graphql";
-import { GenerateResponseIncludeReturnData } from "../../helpers/BaseResponse.type";
+import { GenerateResponse } from "../../helpers/BaseResponse.type";
 import { User, UserModel } from "../../models/User/User.type";
 import { UserError } from "../Error/shared/Error.type";
 import { Context } from "../../types/types";
 
-const SignInResponse = GenerateResponseIncludeReturnData(User, "SignIn");
+const SignInResponse = GenerateResponse(User, "SignIn");
 type SignInResponse = InstanceType<typeof SignInResponse>;
 
 @ArgsType()

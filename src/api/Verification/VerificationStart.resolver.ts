@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Field, ArgsType, Args } from "type-graphql";
 import { ObjectId } from "mongodb";
-import { GenerateResponseIncludeReturnData } from "../../helpers/BaseResponse.type";
+import { GenerateResponse } from "../../helpers/BaseResponse.type";
 import {
     VerificationTarget,
     VerificationEvent,
@@ -12,7 +12,7 @@ import {
     sendSmsVerificationCode,
 } from "../../models/Verification/Verification.function";
 
-export const VerificationProcessResponse = GenerateResponseIncludeReturnData(
+export const VerificationProcessResponse = GenerateResponse(
     Verification,
     "VerificationProcess"
 );

@@ -65,7 +65,7 @@ export class User extends CollectionDataInterface {
 
     @Field()
     @prop()
-    @IsPhoneNumber(this.countryCode2)
+    @IsPhoneNumber(null)
     phoneNumber: string;
 
     @Field(() => UserRole)

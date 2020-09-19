@@ -1,11 +1,11 @@
 import { Resolver, Mutation, Field, ArgsType, Args } from "type-graphql";
-import { GenerateResponseIncludeReturnData } from "../../helpers/BaseResponse.type";
+import { GenerateResponse } from "../../helpers/BaseResponse.type";
 import { User, UserRole, UserModel } from "../../models/User/User.type";
 import { mongoose } from "@typegoose/typegoose";
 import { validateClass } from "../../helpers/errorHandling";
 import { UserError } from "../Error/shared/Error.type";
 
-const SignUpResponse = GenerateResponseIncludeReturnData(User, "SignUp");
+const SignUpResponse = GenerateResponse(User, "SignUp");
 type SignUpResponse = InstanceType<typeof SignUpResponse>;
 
 @ArgsType()

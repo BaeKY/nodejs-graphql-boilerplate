@@ -2,18 +2,20 @@ import { graphql, GraphQLSchema } from "graphql";
 
 import { createSchema } from "../utils/createSchema";
 import { Maybe } from "type-graphql";
+import { UserModel } from "../models/User/User.type";
+import { ObjectId } from "mongodb";
 
 interface Options {
     source: string;
     variableValues?: Maybe<{
         [key: string]: any;
     }>;
-    smsKey?: string;
+    userId?: ObjectId | string;
 }
 
 let schema: GraphQLSchema;
 
-export const gCall = async ({ source, variableValues, smsKey }: Options) => {
+export const gCall = async ({ source, variableValues, userId }: Options) => {
     if (!schema) {
         schema = await createSchema();
     }
@@ -23,14 +25,17 @@ export const gCall = async ({ source, variableValues, smsKey }: Options) => {
         variableValues,
         contextValue: {
             req: {
-                smsKey,
+                headers: {
+                    "x-forwarded-for": "127.0.0.1",
+                },
+                session: {
+                    seller: userId,
+                } as Partial<Express.Session>,
             },
-            // manager:
-            //     smsKey &&
-            //     (await ManagerModel.findOne({
-            //         key: smsKey
-            //     })),
-            res: {},
+            user: await UserModel.findById(userId),
+            res: {
+                clearCookie: jest.fn(),
+            },
         },
     });
 };

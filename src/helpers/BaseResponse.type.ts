@@ -2,10 +2,7 @@ import { ClassType, ObjectType, Field } from "type-graphql";
 import { UserError } from "../api/Error/shared/Error.type";
 import { ClientSession } from "mongoose";
 
-export const GenerateResponseIncludeReturnData = <T>(
-    tClass: ClassType<T>,
-    name: string
-) => {
+export const GenerateResponse = <T>(tClass: ClassType<T>, name: string) => {
     @ObjectType(`${name || tClass.name}Response`)
     class BaseResponseClass extends PlainResponse {
         constructor(ok?: boolean) {
@@ -42,6 +39,41 @@ export const GenerateResponseIncludeReturnData = <T>(
             this.data = data;
             await session.commitTransaction();
             session.endSession();
+        }
+    }
+    return BaseResponseClass;
+};
+
+export const GenerateArrayReturnResponse = <T>(
+    tClass: ClassType<T>,
+    name: string
+) => {
+    @ObjectType(`${name || tClass.name}Response`)
+    class BaseResponseClass extends PlainResponse {
+        constructor(ok?: boolean) {
+            super(ok);
+        }
+        @Field(() => Boolean)
+        ok: boolean;
+
+        @Field(() => [UserError])
+        errors: UserError[];
+
+        @Field(() => [tClass])
+        data?: T[];
+
+        init() {
+            this.ok = true;
+            this.errors = [];
+        }
+
+        setError(error: any, ok = false) {
+            this.errors.push(error);
+            this.ok = ok;
+        }
+
+        setData(data: T[]) {
+            this.data = data;
         }
     }
     return BaseResponseClass;

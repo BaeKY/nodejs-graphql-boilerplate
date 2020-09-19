@@ -6,11 +6,13 @@ import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { ExpressContext } from "apollo-server-express/dist/ApolloServer";
 import { createSchema } from "./utils/createSchema";
-import { ObjectId } from "mongodb";
 import { createCollections } from "./utils/createCollections";
 import { mongoose } from "@typegoose/typegoose";
 import session from "express-session";
 import { ONE_DAY } from "./utils/variables";
+import { loggerCloudWatch } from "./logger";
+import { UserModel } from "./models/User/User.type";
+import { getIpAddress } from "./utils/httpFunctions";
 
 const MongoStore = require("connect-mongo")(session);
 
@@ -26,31 +28,75 @@ class App {
         const schema = await createSchema();
         this.server = new ApolloServer({
             schema,
-            context: async (ctx): Promise<ExpressContext> => {
-                ctx.req["user"] = "";
-                return ctx;
+            context: async (context): Promise<ExpressContext> => {
+                const session = context.req.session;
+                if (!session) {
+                    return context;
+                }
+                const sellerId = session["seller"];
+                if (sellerId) {
+                    const user = await UserModel.findOne({
+                        _id: session["seller"],
+                    });
+                    if (user) {
+                        context["user"] = user;
+                    }
+                }
+                return context;
             },
             uploads: {
                 // 20MB
                 maxFieldSize: 20480000,
             },
+            formatError: (err) => {
+                console.log(err);
+                return err;
+            },
             plugins: [
                 {
                     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-                    requestDidStart: (ctx) => {
-                        const reqId = new ObjectId();
-                        ctx.context["reqId"] = reqId;
-                        // TODO: CloudWatch로 로깅!
-                        // mLogger 이용하기
+                    requestDidStart: (requestContext) => {
+                        const query = requestContext.request.query;
+                        const time = Date.now();
+                        const letsLogging =
+                            query &&
+                            !query.startsWith("query IntrospectionQuery");
                         return {
-                            parsingDidStart(): void {
+                            didEncounterErrors(ctx) {
                                 // TODO: 로깅!
+                                console.log({ errors: ctx.errors });
                             },
-                            didEncounterErrors(): void {
-                                // TODO: 로깅!
-                            },
-                            willSendResponse(): void {
-                                // TODO: 로깅!
+                            // 얘가 항상 마지막임.
+                            willSendResponse(ctx) {
+                                if (letsLogging) {
+                                    // TODO: 로깅!
+                                    const user = ctx.context.user;
+                                    const log = {
+                                        res: `${Date.now() - time} ms`,
+                                        httpHeaders: {
+                                            ...ctx.context.req.headers,
+                                            ip: getIpAddress(ctx.context.req),
+                                        },
+                                        user: user
+                                            ? {
+                                                  _id: user._id,
+                                                  name: user.name,
+                                                  email: user.email,
+                                                  role: user.role,
+                                                  zoneinfo: user.zoneinfo,
+                                              }
+                                            : "Anonymous",
+                                        query: ctx.request.query,
+                                        variables: ctx.request.variables,
+                                        response: {
+                                            http: ctx.response.http,
+                                            data: ctx.response.data,
+                                            errors: ctx.response.errors,
+                                        },
+                                    };
+                                    loggerCloudWatch.info(JSON.stringify(log));
+                                    // console.log(JSON.stringify(log));
+                                }
                             },
                         };
                     },
