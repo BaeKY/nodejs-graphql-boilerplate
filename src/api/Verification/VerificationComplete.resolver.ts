@@ -30,7 +30,7 @@ export class VerificationComplete {
         @Args(() => VerificationCompleteArgs) input: VerificationCompleteArgs
     ): Promise<VerificationStartResponse> {
         const response = new VerificationProcessResponse();
-        response.init();
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {

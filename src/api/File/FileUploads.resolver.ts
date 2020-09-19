@@ -19,7 +19,7 @@ export class FileUploadsResolver {
         @Arg("files", () => [FileInput]) uploadInputs: FileInput[]
     ): Promise<FileUploadsResponse> {
         const response = new FileUploadsResponse();
-        response.init();
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {

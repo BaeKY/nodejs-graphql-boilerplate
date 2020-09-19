@@ -7,7 +7,7 @@ export class SignOutResolver {
     @Mutation(() => PlainResponse)
     async SignOut(@Ctx() context: Context): Promise<PlainResponse> {
         const response = new PlainResponse();
-        response.init();
+
         try {
             context.req.session.seller = undefined;
             context.req.session.save((err: any) => {

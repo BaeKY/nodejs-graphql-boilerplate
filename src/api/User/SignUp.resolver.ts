@@ -33,7 +33,7 @@ export class SignUpResolver {
         @Args(() => SignUpInput) input: SignUpInput
     ): Promise<SignUpResponse> {
         const response = new SignUpResponse();
-        response.init();
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {

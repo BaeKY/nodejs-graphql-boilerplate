@@ -24,7 +24,7 @@ export class SignInResolver {
         @Ctx() context: Context
     ): Promise<SignInResponse> {
         const response = new SignInResponse();
-        response.init();
+
         try {
             const { email, password } = input;
             const user = await UserModel.findOne({

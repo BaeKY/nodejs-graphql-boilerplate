@@ -42,7 +42,7 @@ export class VerificationProcessResolver {
         @Args(() => VerificationStartArgs) input: VerificationStartArgs
     ): Promise<VerificationStartResponse> {
         const response = new VerificationProcessResponse();
-        response.init();
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
