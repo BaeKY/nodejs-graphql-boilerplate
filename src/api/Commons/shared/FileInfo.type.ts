@@ -1,30 +1,31 @@
+import { prop } from "@typegoose/typegoose";
+import { ObjectId } from "mongodb";
 import { ObjectType, Field, InputType } from "type-graphql";
+import { File } from "../../../models/File/File.type";
 import { FileUpload, GqlUpload } from "../../../types/scalars/Upload.scalar";
+import { formatDate } from "../../../utils/dateUtils";
+import { uploadToS3 } from "../../../utils/s3Functions";
 
-@ObjectType({
-    description: "S3 업로드된 파일...",
-})
-export class FileInfo {
-    @Field(() => String)
-    url: string;
-
-    @Field(() => [Tag])
-    tags: Tag[]; // name, mimetype, description 등의 태그 포함. metadata 역할을 함
-}
-
-@ObjectType({
+@ObjectType("Tag", {
     description: "태그.. ㅜㅜ",
 })
-export class Tag {
+export class GqlTag {
+    constructor(key: string, value: string) {
+        this.key = key;
+        this.value = value;
+    }
+
     @Field(() => String)
+    @prop()
     key: string;
 
     @Field(() => String)
+    @prop()
     value: string;
 }
 
 @InputType()
-export class TagInput {
+export class GqlTagInput {
     @Field(() => String)
     key: string;
 
@@ -39,9 +40,39 @@ export class FileInput {
     @Field(() => GqlUpload)
     upload: Promise<FileUpload>;
 
-    @Field(() => [TagInput], {
+    @Field(() => [GqlTagInput], {
         defaultValue: [],
-        description: "S3파일에 적용되는 태그",
     })
-    tags: TagInput[];
+    tags: GqlTagInput[];
+
+    async s3Upload(ownerId: ObjectId, date?: Date): Promise<File | undefined> {
+        const upload = await this.upload;
+        try {
+            const uploadResult = await uploadToS3(upload, {
+                // TODO: 파일 이름 앞에 prefix를 붙여서 중복검사를 할 필요 없게 만들자..
+                filename: `${ownerId.toHexString()}/${formatDate(
+                    date || new Date(),
+                    "%y%m%d-%hh/%im%ss"
+                )}/${upload.filename}`,
+                tagSet: this.tags.map((tag) => ({
+                    Key: tag.key,
+                    Value: tag.value,
+                })),
+            });
+
+            const file = new File();
+            file.uri = uploadResult.Location;
+            file.name = upload.filename;
+            file.extension = upload.filename.split(".").pop() || "";
+            file.ownerId = ownerId;
+            file.mTag = new Map<string, any>();
+            this.tags.forEach((tag) => {
+                file.mTag.set(tag.key, tag.value);
+            });
+            return file;
+        } catch (error) {
+            console.log(error);
+            return undefined;
+        }
+    }
 }
