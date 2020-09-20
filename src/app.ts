@@ -10,9 +10,7 @@ import { createCollections } from "./utils/createCollections";
 import { mongoose } from "@typegoose/typegoose";
 import session from "express-session";
 import { ONE_DAY } from "./utils/variables";
-import { loggerCloudWatch } from "./logger";
 import { UserModel } from "./models/User/User.type";
-import { getIpAddress } from "./utils/httpFunctions";
 
 const MongoStore = require("connect-mongo")(session);
 
@@ -52,67 +50,6 @@ class App {
                 console.log(err);
                 return err;
             },
-            plugins: [
-                {
-                    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-                    requestDidStart: (requestContext) => {
-                        const query = requestContext.request.query;
-                        const time = Date.now();
-                        const letsLogging =
-                            query &&
-                            !query.startsWith("query IntrospectionQuery");
-                        return {
-                            didEncounterErrors(ctx) {
-                                // TODO: 로깅!
-                                console.log({ errors: ctx.errors });
-                            },
-                            // 얘가 항상 마지막임.
-                            willSendResponse(ctx) {
-                                if (letsLogging) {
-                                    // TODO: 로깅!
-                                    const user = ctx.context.user;
-                                    const log = {
-                                        res: `${Date.now() - time} ms`,
-                                        httpHeaders: {
-                                            ...ctx.context.req.headers,
-                                            ip: getIpAddress(ctx.context.req),
-                                        },
-                                        user: user
-                                            ? {
-                                                  _id: user._id,
-                                                  name: user.name,
-                                                  email: user.email,
-                                                  role: user.role,
-                                                  zoneinfo: user.zoneinfo,
-                                              }
-                                            : "Anonymous",
-                                        query: ctx.request.query,
-                                        variables: ctx.request.variables,
-                                        response: {
-                                            http: ctx.response.http,
-                                            data: ctx.response.data,
-                                            errors: ctx.response.errors,
-                                        },
-                                    };
-                                    const isError =
-                                        !!(log.response.errors?.length !== 0) ||
-                                        !!log.response.data?.ok;
-                                    if (isError) {
-                                        loggerCloudWatch.info(
-                                            JSON.stringify(log)
-                                        );
-                                    } else {
-                                        loggerCloudWatch.error(
-                                            JSON.stringify(log)
-                                        );
-                                    }
-                                    // console.log(JSON.stringify(log));
-                                }
-                            },
-                        };
-                    },
-                },
-            ],
             playground,
         });
         this.middlewares();

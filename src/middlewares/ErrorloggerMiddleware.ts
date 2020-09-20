@@ -67,7 +67,8 @@ export class AccessLogging implements MiddlewareInterface<Context> {
         try {
             result = await next();
             if (beLogging) {
-                isErrorBusinessLevel = !result.ok;
+                isErrorBusinessLevel =
+                    !result.ok && parentTypeName === "Mutation";
             }
         } catch (error) {
             isErrorQueryLevel = true;
