@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { ObjectIdScalar } from "../types/scalars/ObjectId.scalar";
 import { authChecker } from "./authChecker";
 import { GraphQLSchema } from "graphql";
+import { AccessLogging } from "../middlewares/ErrorloggerMiddleware";
 
 export const createSchema = async (): Promise<GraphQLSchema> =>
     buildSchema({
@@ -11,7 +12,7 @@ export const createSchema = async (): Promise<GraphQLSchema> =>
         resolvers: [
             __dirname + "/../**/*.{resolver,interface,model,type}.{ts,js}",
         ],
-        globalMiddlewares: [TypegooseMiddleware],
+        globalMiddlewares: [TypegooseMiddleware, AccessLogging],
         scalarsMap: [
             {
                 type: ObjectId,

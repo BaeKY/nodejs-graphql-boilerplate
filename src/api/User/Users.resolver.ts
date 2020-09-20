@@ -1,9 +1,16 @@
-import { Resolver, Query, Args, ArgsType, Field } from "type-graphql";
+import {
+    Resolver,
+    Query,
+    Args,
+    ArgsType,
+    Field,
+    Authorized,
+} from "type-graphql";
 import {
     OffsetPaginatedData,
     OffsetPagingInput,
-} from "../../helpers/PagenationWithOffset.type";
-import { User, UserModel } from "../../models/User/User.type";
+} from "../../helpers/PaginationWithOffset.type";
+import { User, UserModel, UserRole } from "../../models/User/User.type";
 
 const UserOffsetPaginatedData = OffsetPaginatedData(User);
 type UserOffsetPaginatedData = typeof UserOffsetPaginatedData;
@@ -17,7 +24,7 @@ export class UserFindInput {
 @Resolver(() => User)
 export class UsersResolver {
     @Query(() => UserOffsetPaginatedData)
-    // @Authorized(UserRole.ADMIN)
+    @Authorized(UserRole.ADMIN)
     async users(
         @Args(() => UserFindInput)
         { pageInput: { pageItemCount, pageNumber } }: UserFindInput

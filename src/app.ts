@@ -94,7 +94,18 @@ class App {
                                             errors: ctx.response.errors,
                                         },
                                     };
-                                    loggerCloudWatch.info(JSON.stringify(log));
+                                    const isError =
+                                        !!(log.response.errors?.length !== 0) ||
+                                        !!log.response.data?.ok;
+                                    if (isError) {
+                                        loggerCloudWatch.info(
+                                            JSON.stringify(log)
+                                        );
+                                    } else {
+                                        loggerCloudWatch.error(
+                                            JSON.stringify(log)
+                                        );
+                                    }
                                     // console.log(JSON.stringify(log));
                                 }
                             },

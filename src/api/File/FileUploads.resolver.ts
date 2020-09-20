@@ -5,7 +5,10 @@ import { mongoose } from "@typegoose/typegoose";
 import { FileInput } from "../Commons/shared/FileInfo.type";
 import { Context } from "../../types/types";
 import { UserRole } from "../../models/User/User.type";
-import { validateClass } from "../../helpers/errorHandling";
+import {
+    ERROR_USER_ID_UNDEFINED,
+    validateClass,
+} from "../../helpers/errorHandling";
 
 const FileUploadsResponse = GenerateArrayReturnResponse(File, "FileUploads");
 type FileUploadsResponse = InstanceType<typeof FileUploadsResponse>;
@@ -23,9 +26,13 @@ export class FileUploadsResolver {
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
+            const user = context.user;
+            if (!user) {
+                throw ERROR_USER_ID_UNDEFINED;
+            }
             const date = new Date();
             const files = await Promise.all(
-                uploadInputs.map((i) => i.s3Upload(context.user._id, date))
+                uploadInputs.map((i) => i.s3Upload(user._id, date))
             );
             const fileInstances = await Promise.all(
                 files.map(async (f) => {
@@ -33,7 +40,6 @@ export class FileUploadsResolver {
                     return new FileModel(f);
                 })
             );
-            console.log({ fileInstances });
             const result = await Promise.all(
                 fileInstances.map(async (f) => f.save({ session }))
             );

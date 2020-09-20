@@ -2,7 +2,6 @@ import "reflect-metadata";
 import { createLogger } from "winston";
 import AWS from "aws-sdk";
 import WinstonCloudWatch from "winston-cloudwatch";
-import { Service } from "typedi";
 
 export const loggerCloudWatch = createLogger({
     transports: [
@@ -18,12 +17,3 @@ export const loggerCloudWatch = createLogger({
         }),
     ],
 });
-
-@Service()
-export class Logger {
-    log(...args: any[]) {
-        // replace with more sophisticated solution :)
-        console.log(...args);
-        // loggerCloudWatch.warn("Hello~");
-    }
-}

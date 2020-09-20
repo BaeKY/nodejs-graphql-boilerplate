@@ -1,3 +1,4 @@
+import { ApolloError } from "apollo-server-express";
 import { validate } from "class-validator";
 
 export const validateClass = async (itemClass: any) => {
@@ -6,3 +7,8 @@ export const validateClass = async (itemClass: any) => {
         throw validationErrors;
     }
 };
+
+export const ERROR_USER_ID_UNDEFINED = new ApolloError(
+    "UserId is undefined.. please check it out",
+    "USERID_UNDEFINED"
+);
