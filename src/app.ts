@@ -11,6 +11,9 @@ import { mongoose } from "@typegoose/typegoose";
 import session from "express-session";
 import { ONE_DAY } from "./utils/variables";
 import { UserModel } from "./models/User/User.type";
+import { loggerCloudWatch } from "./logger";
+import { ObjectId } from "mongodb";
+import { getIpAddress } from "./utils/httpFunctions";
 
 const MongoStore = require("connect-mongo")(session);
 
@@ -51,6 +54,73 @@ class App {
                 return err;
             },
             playground,
+            plugins: [
+                {
+                    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                    requestDidStart: (requestContext) => {
+                        const query = requestContext.request.query;
+                        const time = Date.now();
+                        const isNotIntrospectionQuery =
+                            query &&
+                            !query.startsWith("query IntrospectionQuery");
+                        let errorId: string;
+                        return {
+                            didEncounterErrors(ctx) {
+                                // TODO: 로깅!
+                                // query level error는 여기서 찍힘. But, Business level error는 그냥 통과함.
+                                // 슬랙 Notification 필요.
+                                if (isNotIntrospectionQuery) {
+                                    errorId = new ObjectId().toHexString();
+                                    loggerCloudWatch.error(
+                                        JSON.stringify({
+                                            errorId,
+                                            errors: ctx.errors,
+                                        })
+                                    );
+                                }
+                            },
+                            // 얘가 항상 마지막임.
+                            willSendResponse(ctx) {
+                                // access logging & business level error logging
+                                if (isNotIntrospectionQuery) {
+                                    // TODO: 로깅!
+                                    const user = ctx.context.user;
+                                    const log = {
+                                        resTime: Date.now() - time,
+                                        request: {
+                                            operation: ctx.operation?.operation,
+                                            httpHeaders:
+                                                ctx.context.req.headers,
+                                            user: {
+                                                _id: user?._id,
+                                                name: user?.name || "Anonymous",
+                                                email: user?.email,
+                                                role: user?.role,
+                                                zoneinfo: user.zoneinfo,
+                                                ip: getIpAddress(
+                                                    ctx.context.req
+                                                ),
+                                            },
+                                            query: ctx.source,
+                                            variables: ctx.request.variables,
+                                        },
+                                        response: {
+                                            http: ctx.response.http,
+                                            data: ctx.response.data,
+                                            errors:
+                                                ctx.response.errors ||
+                                                ctx.errors,
+                                        },
+                                        errorId,
+                                    };
+                                    loggerCloudWatch.info(JSON.stringify(log));
+                                    // console.log(JSON.stringify(log));
+                                }
+                            },
+                        };
+                    },
+                },
+            ],
         });
         this.middlewares();
         this.server.applyMiddleware({
