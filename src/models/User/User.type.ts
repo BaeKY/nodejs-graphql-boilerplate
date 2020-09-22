@@ -2,10 +2,11 @@ import { ObjectType, Field, registerEnumType } from "type-graphql";
 import { CollectionDataInterface } from "../../helpers/CollectionData.type";
 import { prop, getModelForClass, modelOptions } from "@typegoose/typegoose";
 import { IsEmail, IsPhoneNumber, IsPostalCode } from "class-validator";
-import { StringFilter } from "../../helpers/decorators/FilterInputGen/FilterInputGenDecorator";
+import { ValieFilter } from "../../helpers/decorators/filter/FilterInputGenDecorator";
 import { ObjectId } from "mongodb";
 import { Zoneinfo } from "../../api/Commons/Zoneinfo/Zoneinfo.type";
 import { createHash } from "crypto";
+import { STRING_RETURN_TYPE_OPERATORS } from "../../helpers/decorators/filter/types";
 
 export enum UserRole {
     TEACHER,
@@ -26,19 +27,7 @@ export enum UserRole {
 export class User extends CollectionDataInterface {
     @Field()
     @prop()
-    @StringFilter(
-        [
-            "contains",
-            "not_contains",
-            "in",
-            "not_in",
-            "start_with",
-            "not_start_with",
-            "end_with",
-            "not_end_with",
-        ],
-        () => String
-    )
+    @ValieFilter(STRING_RETURN_TYPE_OPERATORS, () => String)
     name: string;
 
     @Field()
@@ -70,7 +59,7 @@ export class User extends CollectionDataInterface {
 
     @Field(() => UserRole)
     @prop()
-    @StringFilter(["in", "not_in", "eq", "not_eq"], () => UserRole)
+    @ValieFilter(["in", "not_in", "eq", "not_eq"], () => UserRole)
     role: UserRole;
 
     @prop({ default: [] })

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Field, InputType, ClassType } from "type-graphql";
 import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
-import { ARRAY_RETURN_TYPE_OPERATORS } from "./types";
+// import { ARRAY_RETURN_TYPE_OPERATORS } from "./types";
 import { getMetadataStorage } from "./metadatas";
 import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
 
@@ -51,7 +51,7 @@ export const generateFilterType = <T>(type: ClassType<T>) => {
             typeof getReturnType === "function" ? getReturnType() : String;
         Field(() => baseReturnType, { nullable: true })(
             filterContainer[filterName].prototype,
-            `${String(fieldName)}`
+            `${String(fieldName)}_eq`
         );
         Field(() => baseReturnType, { nullable: true })(
             filterContainer[filterName].prototype,
@@ -59,11 +59,11 @@ export const generateFilterType = <T>(type: ClassType<T>) => {
         );
         for (const operator of operators) {
             // @Field에 들어가는 리턴타입임.
-            const returnTypeFunction = ARRAY_RETURN_TYPE_OPERATORS.includes(
-                operator
-            )
-                ? () => [baseReturnType]
-                : () => baseReturnType;
+            const returnTypeFunction =
+                ["in", "not_in"].includes(operator as any) &&
+                !(baseReturnType instanceof Array)
+                    ? () => [baseReturnType]
+                    : () => baseReturnType;
 
             Field(returnTypeFunction, { nullable: true })(
                 filterContainer[filterName].prototype,
