@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Field, InputType, ClassType } from "type-graphql";
 import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
-// import { ARRAY_RETURN_TYPE_OPERATORS } from "./types";
-import { getMetadataStorage } from "./metadatas";
+import { getMetadataStorage } from "../types";
 import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
 
 /**

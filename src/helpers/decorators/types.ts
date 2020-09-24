@@ -1,6 +1,20 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { GraphQLScalarType } from "graphql";
 
+export type MetadataStorage = {
+    filters: FiltersCollectionType[];
+    sorts: SortingCollectionType[];
+};
+
+const metadataStorage = {
+    filters: [],
+    sorts: [],
+};
+
+export function getMetadataStorage(): MetadataStorage {
+    return metadataStorage;
+}
+
 type OperatorIn = "in" | "not_in";
 type OperatorContains = "contains" | "not_contains";
 type OperatorEquality = "eq" | "not_eq";
@@ -50,3 +64,11 @@ export type FiltersCollectionType = {
     operators: OperatorType[];
     getReturnType?: ReturnTypeFunc;
 };
+
+export type SortingCollectionType = {
+    target: Function;
+    field: string | symbol;
+    sortOpts: SortOpt[];
+};
+
+export type SortOpt = "asc" | "desc";

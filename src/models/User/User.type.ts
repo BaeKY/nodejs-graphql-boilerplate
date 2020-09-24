@@ -6,7 +6,8 @@ import { ValieFilter } from "../../helpers/decorators/filter/FilterInputGenDecor
 import { ObjectId } from "mongodb";
 import { Zoneinfo } from "../../api/Commons/Zoneinfo/Zoneinfo.type";
 import { createHash } from "crypto";
-import { STRING_RETURN_TYPE_OPERATORS } from "../../helpers/decorators/filter/types";
+import { STRING_RETURN_TYPE_OPERATORS } from "../../helpers/decorators/types";
+import { ValueSorting } from "../../helpers/decorators/sort/SortDecorator";
 
 export enum UserRole {
     TEACHER,
@@ -28,16 +29,19 @@ export class User extends CollectionDataInterface {
     @Field()
     @prop()
     @ValieFilter(STRING_RETURN_TYPE_OPERATORS, () => String)
+    @ValueSorting()
     name: string;
 
     @Field()
     @prop()
     @IsEmail()
+    @ValueSorting()
     email: string;
 
     @Field(() => String, { defaultValue: "KR" })
     @prop()
     @IsPostalCode()
+    @ValueSorting()
     countryCode2: string;
 
     @prop({ _id: false })
@@ -46,15 +50,18 @@ export class User extends CollectionDataInterface {
 
     @prop({ default: () => false })
     @Field(() => Boolean)
+    @ValueSorting()
     isVerifiedPhoneNumber: boolean;
 
     @prop({ default: () => false })
     @Field(() => Boolean)
+    @ValueSorting()
     isVerifiedEmail: boolean;
 
     @Field()
     @prop()
     @IsPhoneNumber(null)
+    @ValueSorting()
     phoneNumber: string;
 
     @Field(() => UserRole)
@@ -114,7 +121,6 @@ export class User extends CollectionDataInterface {
 }
 
 export const UserModel = getModelForClass(User);
-
 registerEnumType(UserRole, {
     name: "UserRole",
     description: "유저 역할!",

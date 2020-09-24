@@ -54,6 +54,7 @@ class App {
                 return err;
             },
             playground,
+            introspection: true,
             plugins: [
                 {
                     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -96,7 +97,7 @@ class App {
                                                 name: user?.name || "Anonymous",
                                                 email: user?.email,
                                                 role: user?.role,
-                                                zoneinfo: user.zoneinfo,
+                                                zoneinfo: user?.zoneinfo,
                                                 ip: getIpAddress(
                                                     ctx.context.req
                                                 ),

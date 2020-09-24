@@ -3,8 +3,11 @@ import { User, UserModel } from "./User.type";
 import { generateFilterType } from "../../helpers/decorators/filter/generateFilterType";
 import { DocumentType } from "@typegoose/typegoose";
 import { toMongoQuery } from "../../helpers/decorators/filter/FilterDecoratorFunction";
+import { generateSortType } from "../../helpers/decorators/sort/generateSortType";
 
 export const UserFilterType = generateFilterType(User);
+
+export const UserSortOperator = generateSortType(User);
 
 @Resolver(() => User)
 export class UserResolver {

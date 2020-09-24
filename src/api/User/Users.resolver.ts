@@ -4,13 +4,19 @@ import {
     Args,
     ArgsType,
     Field,
+    Ctx,
     Authorized,
 } from "type-graphql";
 import {
     OffsetPaginatedData,
     OffsetPagingInput,
 } from "../../helpers/PaginationWithOffset.type";
+import {
+    UserFilterType,
+    UserSortOperator,
+} from "../../models/User/User.resolver";
 import { User, UserModel, UserRole } from "../../models/User/User.type";
+import { Context } from "../../types/types";
 
 const UserOffsetPaginatedData = OffsetPaginatedData(User);
 type UserOffsetPaginatedData = typeof UserOffsetPaginatedData;
@@ -19,6 +25,12 @@ type UserOffsetPaginatedData = typeof UserOffsetPaginatedData;
 export class UserFindInput {
     @Field(() => OffsetPagingInput)
     pageInput: OffsetPagingInput;
+
+    @Field(UserFilterType, { nullable: true })
+    filter: any;
+
+    @Field(UserSortOperator, { nullable: true })
+    sort: string[];
 }
 
 @Resolver(() => User)
@@ -27,12 +39,24 @@ export class UsersResolver {
     @Authorized(UserRole.ADMIN)
     async users(
         @Args(() => UserFindInput)
-        { pageInput: { pageItemCount, pageNumber } }: UserFindInput
+        {
+            pageInput: { pageItemCount, pageNumber },
+            filter,
+            sort,
+        }: UserFindInput,
+        @Ctx() context: Context
     ) {
+        const user = context.user;
+        console.log(user);
         const paginatedResult = new UserOffsetPaginatedData();
         await paginatedResult.setData(UserModel, {
             pageItemCount,
             pageNumber,
+        });
+
+        console.log({
+            filter,
+            sort,
         });
         return paginatedResult;
     }

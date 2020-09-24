@@ -1,5 +1,4 @@
-import { getMetadataStorage } from "./metadatas";
-import { ReturnTypeFunc, OperatorType } from "./types";
+import { ReturnTypeFunc, OperatorType, getMetadataStorage } from "../types";
 
 /**
  * This decorator will store filters information for the field in a metadata storage.
