@@ -12,6 +12,7 @@ yarn
 ## Packagies
 - [typescript](https://www.typescriptlang.org/)
 - [type-graphql](https://typegraphql.com/)
+- [type-graphql-filter](https://github.com/kontist/type-graphql-filter)
 - [typegoose](https://typegoose.github.io/typegoose/)
 - [apollo-server-express](https://www.npmjs.com/package/apollo-server-express)
 - [jest](https://jestjs.io/)
@@ -35,12 +36,13 @@ yarn
 #### Pagination - [Cursor](src/helpers/PaginationWithCursor.type.ts), [Offset](src/helpers/PaginationWithOffset.type.ts)
 - 미완성(작성중)
 #### Access & Error Logging ([src/middlewares/ErrorLoggerMiddleware.ts](src/middlewares/ErrorLoggerMiddleware.ts))
-- TypeGraphQL Global middleware를 통한 Logging
+- Apollo Plugin을 통한 Access & Error Logging
 - winston cloudwatch 라이브러리를 통해 Log들을 cloud-watch로 export 한다.
-- access log는 다음과 같은 정볼르 logging 한다. 
+- access log는 다음과 같은 정보를 logging 한다. 
     - resTime -  쿼리 실행 시간. (milliseconds)
     - request -  headers, body, user(**ip**, **name**, _id, email, zoneinfo, role)
     - response - headers, data, errors
+    - errorId - 존재하면 query level error 발생한거. 해당 Id로 cloud-watch에서 검색 ㄱ
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
