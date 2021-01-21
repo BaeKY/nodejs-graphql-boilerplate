@@ -10,7 +10,10 @@ export const divideFieldName = (
             operator: field,
         };
     }
-    const idx = field.indexOf("_");
+    const idx = field.indexOf("_", 1);
+    // TODO: "_"가 포함되는 필드이름에 문제있음..
+    // FIXED: 수정 완료 => 스네이크타입 변수명을 사용하지 않으므로 보통 "_"가 문자열 맨 앞에 있음.
+    // 따라서 문자열 첫번째 이후의 "_"를 검색
     return { field: field.substr(0, idx), operator: field.substr(idx + 1) };
 };
 
@@ -73,11 +76,18 @@ export const genField = (
             return { $in: value };
         case "not_in":
             return { $nin: value };
-        case "include_all":
+        case "all":
             return { $all: value instanceof Array ? value : [value] };
-        case "not_include_all":
+        case "not_all":
             return {
                 $not: { $all: value instanceof Array ? value : [value] },
+            };
+        case "gte":
+        case "lte":
+        case "lt":
+        case "gt":
+            return {
+                [`$${gqlOperator}`]: value,
             };
         default:
             assert(gqlOperator, "Not supported operator");

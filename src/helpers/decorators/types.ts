@@ -3,12 +3,12 @@ import { GraphQLScalarType } from "graphql";
 
 export type MetadataStorage = {
     filters: FiltersCollectionType[];
-    sorts: SortingCollectionType[];
+    sorting: SortingCollectionType[];
 };
 
 const metadataStorage = {
     filters: [],
-    sorts: [],
+    sorting: [],
 };
 
 export function getMetadataStorage(): MetadataStorage {

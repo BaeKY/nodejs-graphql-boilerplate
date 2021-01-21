@@ -1,7 +1,27 @@
 import { ClassType, ObjectType, Field } from "type-graphql";
-import { UserError } from "../api/Error/shared/Error.type";
 
-export const GenerateResponse = <T>(tClass: ClassType<T>, name: string) => {
+@ObjectType("Response")
+export class PlainResponse {
+    constructor(ok?: boolean) {
+        this.ok = ok === false ? false : true;
+        this.errors = [];
+    }
+    @Field(() => Boolean)
+    ok: boolean;
+
+    @Field(() => [Error], { nullable: true })
+    errors: Error[];
+
+    setError(error: Error, ok = false) {
+        if (!(error instanceof Error)) {
+            throw error;
+        }
+        this.errors.push(error);
+        this.ok = ok;
+    }
+}
+
+export const BaseMutationResponse = <T>(tClass: ClassType<T>, name: string) => {
     @ObjectType(`${name || tClass.name}Response`)
     class BaseResponseClass extends PlainResponse {
         constructor(ok?: boolean) {
@@ -18,7 +38,7 @@ export const GenerateResponse = <T>(tClass: ClassType<T>, name: string) => {
     return BaseResponseClass;
 };
 
-export const GenerateArrayReturnResponse = <T>(
+export const BaseMutationListResponse = <T>(
     tClass: ClassType<T>,
     name: string
 ) => {
@@ -37,24 +57,3 @@ export const GenerateArrayReturnResponse = <T>(
     }
     return BaseResponseClass;
 };
-
-@ObjectType("Response")
-export class PlainResponse {
-    constructor(ok?: boolean) {
-        this.ok = ok === false ? false : true;
-        this.errors = [];
-    }
-    @Field(() => Boolean)
-    ok: boolean;
-
-    @Field(() => [UserError], { nullable: true })
-    errors: UserError[];
-
-    setError(error: UserError, ok = false) {
-        if (!(error instanceof UserError)) {
-            throw error;
-        }
-        this.errors.push(error);
-        this.ok = ok;
-    }
-}

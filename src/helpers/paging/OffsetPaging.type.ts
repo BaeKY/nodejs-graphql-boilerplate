@@ -1,8 +1,9 @@
 import { ClassType, ObjectType, Field, Int, InputType } from "type-graphql";
 import { ModelType } from "@typegoose/typegoose/lib/types";
+import { toMongoQuery } from "../decorators/filter/FilterDecoratorFunction";
 
 @ObjectType()
-export class OffsetPagingInfo {
+export class PagingInfoOffset {
     constructor(input: {
         totalDocumentCount: number;
         pageItemCount: number;
@@ -35,7 +36,7 @@ export class OffsetPagingInfo {
 }
 
 @InputType()
-export class OffsetPagingInput {
+export class PagingOffsetInput {
     @Field(() => Int)
     pageNumber: number;
 
@@ -43,11 +44,11 @@ export class OffsetPagingInput {
     pageItemCount: number;
 }
 
-export const OffsetPaginatedData = <TItem>(TItemClass: ClassType<TItem>) => {
-    @ObjectType(`OffsetPagenated${TItemClass.name}Data`)
+export const PagingOffsetData = <TItem>(TItemClass: ClassType<TItem>) => {
+    @ObjectType(`${TItemClass.name}PagingOffsetData`)
     class OffsetPagenatedData {
-        @Field(() => OffsetPagingInfo)
-        pageInfo: OffsetPagingInfo;
+        @Field(() => PagingInfoOffset)
+        pageInfo: PagingInfoOffset;
 
         @Field(() => [TItemClass])
         items: TItem[];
@@ -57,21 +58,25 @@ export const OffsetPaginatedData = <TItem>(TItemClass: ClassType<TItem>) => {
             pageInfo: {
                 pageNumber: number;
                 pageItemCount: number;
+                query?: any;
                 filter?: any;
-                sort?: any;
+                sort?: string[];
             }
         ): Promise<void> {
-            const { filter, pageNumber, pageItemCount, sort } = pageInfo;
+            const { filter, pageNumber, pageItemCount, sort, query } = pageInfo;
+            console.log({ filterQ: toMongoQuery(filter), query });
+            const filterQuery = toMongoQuery(filter);
             const [totalDocumentCount, items] = await Promise.all([
-                model.find(filter).countDocuments(),
+                model.find(filterQuery).find(query).countDocuments(),
                 model
-                    .find(filter)
+                    .find(filterQuery)
+                    .find(query)
                     .skip(pageNumber * pageItemCount)
-                    .sort(sort)
+                    .sort(toMongoSort(sort))
                     .exec(),
             ]);
             this.items = items;
-            this.pageInfo = new OffsetPagingInfo({
+            this.pageInfo = new PagingInfoOffset({
                 page: pageNumber,
                 currentItemCount: items.length,
                 totalDocumentCount,
@@ -80,4 +85,16 @@ export const OffsetPaginatedData = <TItem>(TItemClass: ClassType<TItem>) => {
         }
     }
     return OffsetPagenatedData;
+};
+
+const toMongoSort = (rawSort?: string[]) => {
+    if (!rawSort) {
+        return undefined;
+    }
+    const temp = {} as any;
+    rawSort.forEach((r) => {
+        const d = r.split("_");
+        temp[d[0]] = d[1] === "asc" ? 1 : -1;
+    });
+    return temp;
 };

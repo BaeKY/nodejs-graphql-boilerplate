@@ -7,7 +7,7 @@ import { ReturnTypeFunc, OperatorType, getMetadataStorage } from "../types";
  * @param operators
  * @param returnTypeFunction
  */
-export function ValieFilter(
+export function ValueFilter(
     operators: OperatorType | OperatorType[],
     returnTypeFunction?: ReturnTypeFunc
 ): PropertyDecorator {

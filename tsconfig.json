@@ -2,8 +2,8 @@
     "compilerOptions": {
         "baseUrl": ".",
         "module": "commonjs",
-        "target": "es2018",
-        "lib": ["es2018", "esnext.asynciterable"],
+        "target": "es2019",
+        "lib": ["es2018", "es2020", "esnext.asynciterable"],
         "sourceMap": true,
         "allowJs": true,
         "moduleResolution": "node",
@@ -21,7 +21,7 @@
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "paths": {
-            "types": ["src/types/types.d.ts"]
+            "types": ["src/types/types.ts"]
         }
     },
     "include": ["src/**/*"],

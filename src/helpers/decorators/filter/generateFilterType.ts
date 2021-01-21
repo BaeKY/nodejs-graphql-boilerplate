@@ -3,6 +3,7 @@ import { Field, InputType, ClassType } from "type-graphql";
 import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
 import { getMetadataStorage } from "../types";
 import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
+import { ObjectClassMetadata } from "type-graphql/dist/metadata/definitions/object-class-metdata";
 
 /**
  * Generate a type-graphql InputType from a @ObjectType decorated
@@ -13,8 +14,10 @@ import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
  *
  * @param type
  */
-export const generateFilterType = <T>(type: ClassType<T>) => {
-    const filtersData = getFiltersData(type);
+export const generateFilterType = <T>(
+    type: ClassType<T>,
+    ...types: Function[]
+) => {
     const typeGraphQLMetadata = getTypeGraphQLMetadataStorage();
     const graphQLModel = getTypeGraphqlModel(type, typeGraphQLMetadata);
 
@@ -36,40 +39,45 @@ export const generateFilterType = <T>(type: ClassType<T>) => {
         nullable: true,
     })(filterContainer[filterName].prototype, "OR");
 
-    // Simulate creation of fields for this class/InputType by calling @Field()
-    for (const { field, operators, getReturnType } of filtersData) {
-        // When dealing with methods decorated with @Field, we need to lookup the GraphQL
-        // name and use that for our filter name instead of the plain method name
-        const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
-            (fr) => fr.target === type && fr.methodName === field
-        );
-
-        const fieldName = graphQLField ? graphQLField.schemaName : field;
-
-        const baseReturnType =
-            typeof getReturnType === "function" ? getReturnType() : String;
-        Field(() => baseReturnType, { nullable: true })(
-            filterContainer[filterName].prototype,
-            `${String(fieldName)}_eq`
-        );
-        Field(() => baseReturnType, { nullable: true })(
-            filterContainer[filterName].prototype,
-            `${String(fieldName)}_not_eq`
-        );
-        for (const operator of operators) {
-            // @Field에 들어가는 리턴타입임.
-            const returnTypeFunction =
-                ["in", "not_in"].includes(operator as any) &&
-                !(baseReturnType instanceof Array)
-                    ? () => [baseReturnType]
-                    : () => baseReturnType;
-
-            Field(returnTypeFunction, { nullable: true })(
-                filterContainer[filterName].prototype,
-                `${String(fieldName)}_${operator}`
+    const addField = (t: Function) => {
+        // Simulate creation of fields for this class/InputType by calling @Field()
+        const filtersData = getFiltersData(t);
+        for (const { field, operators, getReturnType } of filtersData) {
+            // When dealing with methods decorated with @Field, we need to lookup the GraphQL
+            // name and use that for our filter name instead of the plain method name
+            const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
+                (fr) => fr.target === type && fr.methodName === field
             );
+
+            const fieldName = graphQLField ? graphQLField.schemaName : field;
+
+            const baseReturnType =
+                typeof getReturnType === "function" ? getReturnType() : String;
+            Field(() => baseReturnType, { nullable: true })(
+                filterContainer[filterName].prototype,
+                `${String(fieldName)}_eq`
+            );
+            Field(() => baseReturnType, { nullable: true })(
+                filterContainer[filterName].prototype,
+                `${String(fieldName)}_not_eq`
+            );
+            for (const operator of operators) {
+                // @Field에 들어가는 리턴타입임.
+                const returnTypeFunction =
+                    ["in", "not_in"].includes(operator as any) &&
+                    !(baseReturnType instanceof Array)
+                        ? () => [baseReturnType]
+                        : () => baseReturnType;
+
+                Field(returnTypeFunction, { nullable: true })(
+                    filterContainer[filterName].prototype,
+                    `${String(fieldName)}_${operator}`
+                );
+            }
         }
-    }
+    };
+    addField(type);
+    types.forEach((t) => addField(t));
 
     const result = () => filterContainer[filterName];
     return result;
@@ -83,13 +91,17 @@ const getFiltersData = (type: Function) => {
     return filtersData;
 };
 
-const getTypeGraphqlModel = (
+export const getTypeGraphqlModel = (
     type: Function,
     typeGraphQLMetadata: MetadataStorage
-) => {
-    const objectTypesList = typeGraphQLMetadata.objectTypes;
-    const graphQLModel = objectTypesList.find((ot) => ot.target === type);
-
+): ObjectClassMetadata => {
+    const objectTypesList = [
+        ...typeGraphQLMetadata.objectTypes,
+        ...typeGraphQLMetadata.interfaceTypes,
+    ];
+    const graphQLModel: ObjectClassMetadata | undefined = objectTypesList.find(
+        (ot) => ot.target === type
+    );
     if (!graphQLModel) {
         throw new Error(
             `Please decorate your class "${type}" with @ObjectType if you want to filter it`

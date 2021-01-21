@@ -13,39 +13,47 @@ import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
  *
  * @param type
  */
-export const generateSortType = <T>(type: ClassType<T>) => {
-    const filtersData = getSortingsData(type);
+export const generateSortType = <T>(
+    type: ClassType<T>,
+    ...types: Function[]
+) => {
     const typeGraphQLMetadata = getTypeGraphQLMetadataStorage();
     const graphQLModel = getTypeGraphqlModel(type, typeGraphQLMetadata);
 
     const sortContainer = {} as any;
 
-    // Simulate creation of fields for this class/InputType by calling @Field()
-    for (const { field } of filtersData) {
-        // When dealing with methods decorated with @Field, we need to lookup the GraphQL
-        // name and use that for our filter name instead of the plain method name
-        const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
-            (fr) => fr.target === type && fr.methodName === field
-        );
+    const addField = (t: Function) => {
+        const filtersData = getSortingsData(t);
 
-        const fieldName = graphQLField
-            ? graphQLField.schemaName
-            : field.toString();
-        sortContainer[`${fieldName}_desc`] = `${fieldName}_desc`;
-        sortContainer[`${fieldName}_asc`] = `${fieldName}_asc`;
-    }
+        // Simulate creation of fields for this class/InputType by calling @Field()
+        for (const { field } of filtersData) {
+            // When dealing with methods decorated with @Field, we need to lookup the GraphQL
+            // name and use that for our filter name instead of the plain method name
+            const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
+                (fr) => fr.target === type && fr.methodName === field
+            );
 
-    registerEnumType(sortContainer, {
-        name: `_${graphQLModel.name}Sort`,
-        description: "Auto generated sort type",
-    });
+            const fieldName = graphQLField
+                ? graphQLField.schemaName
+                : field.toString();
+            sortContainer[`${fieldName}_desc`] = `${fieldName}_desc`;
+            sortContainer[`${fieldName}_asc`] = `${fieldName}_asc`;
+        }
+
+        registerEnumType(sortContainer, {
+            name: `_${graphQLModel.name}Sort`,
+            description: "Auto generated sort type",
+        });
+    };
+    addField(type);
+    types.forEach((t) => addField(t));
 
     return () => [sortContainer];
 };
 
 const getSortingsData = (type: Function) => {
     const metadataStorage = getMetadataStorage();
-    const sortData = metadataStorage.sorts.filter((f) => f.target === type);
+    const sortData = metadataStorage.sorting.filter((f) => f.target === type);
     return sortData;
 };
 
@@ -53,7 +61,10 @@ const getTypeGraphqlModel = (
     type: Function,
     typeGraphQLMetadata: MetadataStorage
 ) => {
-    const objectTypesList = typeGraphQLMetadata.objectTypes;
+    const objectTypesList = [
+        ...typeGraphQLMetadata.objectTypes,
+        ...typeGraphQLMetadata.interfaceTypes,
+    ];
     const graphQLModel = objectTypesList.find((ot) => ot.target === type);
 
     if (!graphQLModel) {
