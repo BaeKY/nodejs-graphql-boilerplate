@@ -93,7 +93,7 @@
         "reflect-metadata": "^0.1.13",
         "slack-node": "^0.1.8",
         "type-graphql": "^1.1.1",
-        "typedi": "^0.8.0",
+        "typedi": "^0.10.0",
         "uuid": "^8.3.0",
         "winston": "^3.2.1",
         "winston-cloudwatch": "2.3.2"

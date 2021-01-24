@@ -1,9 +1,10 @@
-import { buildSchema } from "type-graphql";
+import { buildSchema, ResolverData } from "type-graphql";
 import { TypegooseMiddleware } from "../middlewares/typegooseMiddleware";
 import { ObjectId } from "mongodb";
 import { ObjectIdScalar } from "../types/scalars/ObjectId.scalar";
 import { authChecker } from "./authChecker";
 import { GraphQLSchema } from "graphql";
+import { IContext } from "../types/types";
 
 export const createSchema = async (): Promise<GraphQLSchema> =>
     buildSchema({
@@ -19,4 +20,5 @@ export const createSchema = async (): Promise<GraphQLSchema> =>
             },
         ],
         authChecker,
+        container: ({ context }: ResolverData<IContext>) => context.container,
     });

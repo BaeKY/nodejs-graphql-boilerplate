@@ -4,23 +4,20 @@ import helmet from "helmet";
 import logger from "morgan";
 import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
-import { ExpressContext } from "apollo-server-express/dist/ApolloServer";
 import { createSchema } from "./utils/createSchema";
 import { createCollections } from "./utils/createCollections";
 import { mongoose } from "@typegoose/typegoose";
 import session from "express-session";
 import { ONE_DAY } from "./utils/variables";
-import { UserModel } from "./models/User/User.type";
-import { loggerCloudWatch } from "./logger";
-import { ObjectId } from "mongodb";
-import { getIpAddress } from "./utils/httpFunctions";
+import { v4 as uuidv4 } from "uuid";
+import Container, { ContainerInstance } from "typedi";
 
 const MongoStore = require("connect-mongo")(session);
 
 class App {
     public server: ApolloServer;
     public app: Express;
-    private gqlEndPoint: string = process.env.GRAPHQL_ENDPOINT || "/graphql";
+    private gqlEndPoint: string = process.env.GRAPHQL_ENDPOINT || "/gql";
 
     async init(): Promise<Express> {
         const playground = Boolean(process.env.ENABLE_PLAYGROUND).valueOf();
@@ -29,97 +26,40 @@ class App {
         const schema = await createSchema();
         this.server = new ApolloServer({
             schema,
-            context: async (context): Promise<ExpressContext> => {
-                const session = context.req.session;
-                if (!session) {
-                    return context;
-                }
-                const sellerId = session["seller"];
-                if (sellerId) {
-                    const user = await UserModel.findOne({
-                        _id: session["seller"],
-                    });
-                    if (user) {
-                        context["user"] = user;
-                    }
-                }
+            context: async () => {
+                // 아래 링크 참조!
+                // https://github.com/MichalLytek/type-graphql/blob/v1.1.1/examples/using-scoped-container/index.ts
+                const requestId = uuidv4();
+                const container = Container.of(requestId); // get scoped container
+                const context = { requestId, container }; // create our context
+                container.set("context", context); // place context or other data in container
                 return context;
             },
             uploads: {
                 // 20MB
                 maxFieldSize: 20480000,
             },
-            formatError: (err) => {
-                console.log(err);
-                return err;
-            },
             playground,
             introspection: true,
             plugins: [
                 {
-                    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-                    requestDidStart: (requestContext) => {
-                        const query = requestContext.request.query;
-                        const time = Date.now();
-                        const isNotIntrospectionQuery =
-                            query &&
-                            !query.startsWith("query IntrospectionQuery");
-                        let errorId: string;
-                        return {
-                            didEncounterErrors(ctx) {
-                                // TODO: 로깅!
-                                // query level error는 여기서 찍힘. But, Business level error는 그냥 통과함.
-                                // 슬랙 Notification 필요.
-                                if (isNotIntrospectionQuery) {
-                                    errorId = new ObjectId().toHexString();
-                                    loggerCloudWatch.error(
-                                        JSON.stringify({
-                                            errorId,
-                                            errors: ctx.errors,
-                                        })
-                                    );
-                                }
-                            },
-                            // 얘가 항상 마지막임.
-                            willSendResponse(ctx) {
-                                // access logging & business level error logging
-                                if (isNotIntrospectionQuery) {
-                                    // TODO: 로깅!
-                                    const user = ctx.context.user;
-                                    const log = {
-                                        resTime: Date.now() - time,
-                                        request: {
-                                            operation: ctx.operation?.operation,
-                                            httpHeaders:
-                                                ctx.context.req.headers,
-                                            user: {
-                                                _id: user?._id,
-                                                name: user?.name || "Anonymous",
-                                                email: user?.email,
-                                                role: user?.role,
-                                                zoneinfo: user?.zoneinfo,
-                                                ip: getIpAddress(
-                                                    ctx.context.req
-                                                ),
-                                            },
-                                            query: ctx.source,
-                                            variables: ctx.request.variables,
-                                        },
-                                        response: {
-                                            http: ctx.response.http,
-                                            data: ctx.response.data,
-                                            errors:
-                                                ctx.response.errors ||
-                                                ctx.errors,
-                                        },
-                                        errorId,
-                                    };
-                                    loggerCloudWatch.info(JSON.stringify(log));
-                                    // console.log(JSON.stringify(log));
-                                }
-                            },
-                        };
-                    },
+                    requestDidStart: () => ({
+                        willSendResponse(requestContext) {
+                            // remember to dispose the scoped container to prevent memory leaks
+                            Container.reset(requestContext.context.requestId);
+
+                            // for developers curiosity purpose, here is the logging of current scoped container instances
+                            // we can make multiple parallel requests to see in console how this works
+                            const instancesIds = ((Container as any)
+                                .instances as ContainerInstance[]).map(
+                                (instance) => instance.id
+                            );
+                            console.log(
+                                "instances left in memory:",
+                                instancesIds
+                            );
+                        },
+                    }),
                 },
             ],
         });
@@ -134,7 +74,7 @@ class App {
                     // Replace the `true` in this conditional with more specific checks!
 
                     // if (req.get("health")) {
-                    resolve();
+                    resolve("Healty");
                     // } else {
                     //     reject("boooooooooooo");
                     // }
@@ -167,10 +107,10 @@ class App {
                 },
             })
         );
-        this.useLogger();
+        this.setupSystemLogging();
     };
 
-    private useLogger = (): void => {
+    private setupSystemLogging = (): void => {
         logger.token("remote-addr", (req) => {
             const ffHeaderValue = req.headers["x-forwarded-for"];
             if (typeof ffHeaderValue === "string") {
@@ -178,7 +118,7 @@ class App {
             }
             return (
                 (ffHeaderValue && ffHeaderValue[0]) ||
-                req.connection.remoteAddress ||
+                req.socket.remoteAddress ||
                 ""
             );
         });
