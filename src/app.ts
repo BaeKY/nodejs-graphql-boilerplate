@@ -5,12 +5,10 @@ import logger from "morgan";
 import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
-import { createCollections } from "./utils/createCollections";
-import { mongoose } from "@typegoose/typegoose";
-import session from "express-session";
-import { ONE_DAY } from "./utils/variables";
 import { v4 as uuidv4 } from "uuid";
 import Container, { ContainerInstance } from "typedi";
+import session from "express-session";
+import { ONE_DAY } from "./constants";
 
 const MongoStore = require("connect-mongo")(session);
 
@@ -63,6 +61,25 @@ class App {
                 },
             ],
         });
+
+        // MongoDB for Session Storage
+        this.app.use(
+            session({
+                name: "qid",
+                secret: process.env.SESSION_SECRET || "",
+                resave: false,
+                saveUninitialized: false,
+                store: new MongoStore({
+                    url: process.env.DB_URI,
+                }),
+                cookie: {
+                    httpOnly: true,
+                    domain: ".stayjanda.cloud",
+                    sameSite: "lax",
+                    maxAge: ONE_DAY * 14,
+                },
+            })
+        );
         this.middlewares();
         this.server.applyMiddleware({
             app: this.app,
@@ -81,7 +98,6 @@ class App {
                 });
             },
         });
-        await createCollections();
         return this.app;
     }
 
@@ -89,24 +105,6 @@ class App {
         this.app.use(cors());
         this.app.use(helmet());
 
-        // MongoDB for Session Storage
-        this.app.use(
-            session({
-                name: "qid",
-                secret: process.env.JD_TIMESPACE_SECRET || "",
-                resave: false,
-                saveUninitialized: false,
-                store: new MongoStore({
-                    mongooseConnection: mongoose.connection,
-                }),
-                cookie: {
-                    httpOnly: true,
-                    domain: ".stayjanda.cloud",
-                    sameSite: "lax",
-                    maxAge: ONE_DAY * 14,
-                },
-            })
-        );
         this.setupSystemLogging();
     };
 

@@ -1,4 +1,4 @@
-import collections from "../models/_exported";
+import collections from "./_exportedModels";
 
 export const createCollections = async (
     dropAllCollection?: boolean
@@ -37,7 +37,7 @@ export const createCollections = async (
                             .createCollection()
                             .then(() => {
                                 console.log(
-                                    "collection %s is created",
+                                    "collection %s is recreated",
                                     model.collection.name
                                 );
                             })

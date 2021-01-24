@@ -1,13 +1,11 @@
-import { Hour, Minute } from "../types/types";
-
 /**
  * 6000
  */
-export const ONE_MINUTE: Minute = 1000 * 60;
+export const ONE_MINUTE = 1000 * 60;
 /**
  * 360000
  */
-export const ONE_HOUR: Hour = ONE_MINUTE * 60;
+export const ONE_HOUR = ONE_MINUTE * 60;
 /**
  * 86400000
  */
@@ -25,3 +23,6 @@ export const SmsCollectionNamePrefix = "SMS";
 
 export const mongoCollectionName = (collectionName: string): string =>
     collectionName;
+
+export const PAYMENT_EXP_TIME_CARD = 20 * ONE_MINUTE;
+export const PAYMENT_EXP_TIME_BANK_TRANSFER = ONE_DAY;

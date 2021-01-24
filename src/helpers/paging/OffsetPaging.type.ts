@@ -1,5 +1,5 @@
-import { ClassType, ObjectType, Field, Int, InputType } from "type-graphql";
 import { ModelType } from "@typegoose/typegoose/lib/types";
+import { ClassType, ObjectType, Field, Int, InputType } from "type-graphql";
 import { toMongoQuery } from "../decorators/filter/FilterDecoratorFunction";
 
 @ObjectType()
