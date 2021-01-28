@@ -5,6 +5,8 @@ export interface IContext {
     // default => 9
     dateTimeOffsetHours: number;
     session?: ClientSession;
+    req: any;
+    res: any;
 }
 
 export interface IContext {
