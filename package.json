@@ -20,6 +20,7 @@
         "@types/helmet": "^0.0.47",
         "@types/inquirer": "^7.3.1",
         "@types/jest": "^26.0.7",
+        "@types/joi": "^17.2.3",
         "@types/json5": "^0.0.30",
         "@types/jsonwebtoken": "^8.3.0",
         "@types/jwk-to-pem": "^2.0.0",

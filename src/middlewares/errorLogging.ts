@@ -21,7 +21,7 @@ export class ErrorLoggerMiddleware implements MiddlewareInterface<IContext> {
                 message: err.message,
                 operation: info.operation.operation,
                 fieldName: info.fieldName,
-                userName: context,
+                userName: context.user?.name || "Anonymous",
             });
             if (!(err instanceof ArgumentValidationError)) {
                 // hide errors from db like printing sql query

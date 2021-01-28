@@ -8,10 +8,6 @@ import { ObjectId } from "mongodb";
     resolveType: (value) => value.constructor.name,
 })
 export abstract class Node extends Base {
-    @Field(() => ObjectId)
-    @Prop()
-    _id: ObjectId;
-
     constructor(args?: any) {
         super();
         if (args) {
@@ -24,6 +20,9 @@ export abstract class Node extends Base {
 
     @Prop()
     isDeleted?: boolean;
+}
+{
+    Field(() => ObjectId)(Node.prototype, "_id");
 }
 
 @InterfaceType({

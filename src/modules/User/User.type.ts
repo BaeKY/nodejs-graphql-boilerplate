@@ -7,12 +7,16 @@ import {
     MutationPayloadArr,
 } from "../Common/MutationPayload.type";
 import { Node, Timestamped } from "../Core/Core.interface";
-import { AbsUser } from "./User.interface";
+import { AbsUser, UserType } from "./User.interface";
 
 @ObjectType({
     implements: [Node, Timestamped, AbsUser],
 })
-export class User extends AbsUser {}
+export class User extends AbsUser {
+    @Field(() => UserType)
+    @Prop({ required: true, enum: UserType, default: UserType.Normal })
+    type: UserType;
+}
 
 @InputType()
 export class UserCreateInput implements Partial<User> {

@@ -24,8 +24,8 @@ export abstract class AbsUser extends TimestampedNode {
     name: string;
 
     @Field(() => UserType)
-    @Prop({ enum: UserType })
-    type: UserType = UserType.Normal;
+    @Prop({ required: true, enum: UserType })
+    type: UserType;
 
     @Field(() => String)
     @Prop({ required: true })

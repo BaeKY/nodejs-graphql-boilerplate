@@ -9,6 +9,7 @@ import {
 } from "./User.type";
 import { UserService } from "./User.service";
 import { BasicMutationPayload } from "../Common/MutationPayload.type";
+import { WithMongoSession } from "../../decorators/MongoSessionDecorator";
 
 export interface UserResolver {
     SignUp(
@@ -28,15 +29,16 @@ export interface UserResolver {
 export class UserResolver {
     constructor(private readonly userService: UserService) {}
 
-    @Mutation(() => User)
+    @WithMongoSession()
+    @Mutation(() => UserMutationPayload)
     async SignUp(
         @Ctx() context: IContext,
         @Arg("signUpInput", () => UserCreateInput) input: UserCreateInput
     ): Promise<UserMutationPayload> {
         const result = new UserMutationPayload();
-        const data = await this.userService.create(input);
+        const data = await this.userService.signUp(input, context.session);
         result.setData(data);
-
+        console.log(result);
         return result;
     }
 
