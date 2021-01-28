@@ -1,32 +1,34 @@
 import { ModelType } from "@typegoose/typegoose/lib/types";
 import { ClassType, ObjectType, Field, Int, InputType } from "type-graphql";
-import { toMongoQuery } from "../decorators/filter/FilterDecoratorFunction";
+import { toMongoQuery } from "../../helpers/decorators/filter/FilterDecoratorFunction";
 
 @ObjectType()
-export class PagingInfoOffset {
-    constructor(input: {
+export class PageInfo {
+    setData(input: {
         totalDocumentCount: number;
         pageItemCount: number;
         page: number;
         currentItemCount: number;
     }) {
         const {
-            page,
+            page: pageIndex,
             currentItemCount,
-            pageItemCount,
+            pageItemCount: pageRowCount,
             totalDocumentCount,
         } = input;
-        this.pageNumber = page;
-        this.pageItemCount = pageItemCount;
-        this.totalPageCount = Math.ceil(totalDocumentCount / pageItemCount);
+        this.pageIndex = pageIndex;
+        this.pageRowCount = pageRowCount;
+
+        // 이거 두개만 설정하면되네
+        this.totalPageCount = Math.ceil(totalDocumentCount / pageRowCount);
         this.currentItemCount = currentItemCount;
     }
 
     @Field(() => Int, { description: "선택한 페이지 번호" })
-    pageNumber: number;
+    pageIndex: number;
 
     @Field(() => Int, { description: "페이지당 기준 데이터 수" })
-    pageItemCount: number;
+    pageRowCount: number;
 
     @Field(() => Int, { description: "현재 페이지에서 출력한 데이터 수" })
     currentItemCount: number;
@@ -36,7 +38,7 @@ export class PagingInfoOffset {
 }
 
 @InputType()
-export class PagingOffsetInput {
+export class PageInput {
     @Field(() => Int)
     pageNumber: number;
 
@@ -44,14 +46,21 @@ export class PagingOffsetInput {
     pageItemCount: number;
 }
 
-export const PagingOffsetData = <TItem>(TItemClass: ClassType<TItem>) => {
+export const OffsetPaging = <TItem>(TItemClass: ClassType<TItem>) => {
     @ObjectType(`${TItemClass.name}PagingOffsetData`)
     class OffsetPagenatedData {
-        @Field(() => PagingInfoOffset)
-        pageInfo: PagingInfoOffset;
+        @Field(() => PageInfo)
+        pageInfo: PageInfo;
 
         @Field(() => [TItemClass])
         items: TItem[];
+
+        public setPageInfo(pageIndex: number, pageRowCount: number) {
+            this.pageInfo = new PageInfo();
+            this.pageInfo.pageIndex = pageIndex;
+            this.pageInfo.pageRowCount = pageRowCount;
+            return this;
+        }
 
         public async setData(
             model: ModelType<TItem>,
@@ -64,7 +73,6 @@ export const PagingOffsetData = <TItem>(TItemClass: ClassType<TItem>) => {
             }
         ): Promise<void> {
             const { filter, pageNumber, pageItemCount, sort, query } = pageInfo;
-            console.log({ filterQ: toMongoQuery(filter), query });
             const filterQuery = toMongoQuery(filter);
             const [totalDocumentCount, items] = await Promise.all([
                 model.find(filterQuery).find(query).countDocuments(),
@@ -76,11 +84,12 @@ export const PagingOffsetData = <TItem>(TItemClass: ClassType<TItem>) => {
                     .exec(),
             ]);
             this.items = items;
-            this.pageInfo = new PagingInfoOffset({
+            this.pageInfo = new PageInfo();
+            this.pageInfo.setData({
                 page: pageNumber,
                 currentItemCount: items.length,
                 totalDocumentCount,
-                pageItemCount: pageItemCount,
+                pageItemCount,
             });
         }
     }

@@ -5,8 +5,6 @@ import logger from "morgan";
 import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
-import { v4 as uuidv4 } from "uuid";
-import Container, { ContainerInstance } from "typedi";
 import session from "express-session";
 import { ONE_DAY } from "./constants";
 
@@ -24,14 +22,11 @@ class App {
         const schema = await createSchema();
         this.server = new ApolloServer({
             schema,
-            context: async () => {
-                // 아래 링크 참조!
-                // https://github.com/MichalLytek/type-graphql/blob/v1.1.1/examples/using-scoped-container/index.ts
-                const requestId = uuidv4();
-                const container = Container.of(requestId); // get scoped container
-                const context = { requestId, container }; // create our context
-                container.set("context", context); // place context or other data in container
-                return context;
+            context: async (expressContext) => {
+                expressContext["dateTimeOffsetHours"] = parseInt(
+                    process.env.DATETIME_OFFSET_HOURS || "9"
+                );
+                return expressContext;
             },
             uploads: {
                 // 20MB
@@ -39,27 +34,6 @@ class App {
             },
             playground,
             introspection: true,
-            plugins: [
-                {
-                    requestDidStart: () => ({
-                        willSendResponse(requestContext) {
-                            // remember to dispose the scoped container to prevent memory leaks
-                            Container.reset(requestContext.context.requestId);
-
-                            // for developers curiosity purpose, here is the logging of current scoped container instances
-                            // we can make multiple parallel requests to see in console how this works
-                            const instancesIds = ((Container as any)
-                                .instances as ContainerInstance[]).map(
-                                (instance) => instance.id
-                            );
-                            console.log(
-                                "instances left in memory:",
-                                instancesIds
-                            );
-                        },
-                    }),
-                },
-            ],
         });
 
         // MongoDB for Session Storage

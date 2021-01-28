@@ -1,6 +1,12 @@
-import { ContainerInstance } from "typedi";
+import { ClientSession } from "mongoose";
+import { User } from "../modules/User/User.type";
 
 export interface IContext {
-    requestId: string;
-    container: ContainerInstance;
+    // default => 9
+    dateTimeOffsetHours: number;
+    session?: ClientSession;
+}
+
+export interface IContext {
+    user?: User;
 }

@@ -1,19 +1,23 @@
-import { buildSchema, ResolverData } from "type-graphql";
+import { buildSchema } from "type-graphql";
 import { ObjectIdScalar } from "../types/scalars/ObjectId.scalar";
 import { authChecker } from "./authChecker";
 import { GraphQLSchema } from "graphql";
-import { IContext } from "../types/types";
 import { JSONObjectResolver } from "graphql-scalars";
 import { ErrorLoggerMiddleware } from "../middlewares/errorLogging";
 import { ObjectId } from "mongodb";
 import { TypegooseMiddleware } from "../middlewares/typegoose-middleware";
+import Container from "typedi";
+import { join } from "path";
+
+const resolverPaths = join(
+    __dirname,
+    "/../**/*.{resolver,interface,model,type}.{ts,js}"
+);
 
 export const createSchema = async (): Promise<GraphQLSchema> =>
     buildSchema({
         emitSchemaFile: true,
-        resolvers: [
-            __dirname + "/../**/*.{resolver,interface,model,type}.{ts,js}",
-        ],
+        resolvers: [resolverPaths],
         globalMiddlewares: [TypegooseMiddleware, ErrorLoggerMiddleware],
         scalarsMap: [
             {
@@ -26,5 +30,5 @@ export const createSchema = async (): Promise<GraphQLSchema> =>
             },
         ],
         authChecker,
-        container: ({ context }: ResolverData<IContext>) => context.container,
+        container: Container,
     });

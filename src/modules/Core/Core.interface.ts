@@ -30,7 +30,7 @@ export abstract class Node extends Base {
     description: "Timestamp type",
     resolveType: (value) => value.constructor.name,
 })
-export abstract class Timestamped extends TimeStamps {
+export abstract class Timestamped extends Base implements TimeStamps {
     @Field(() => Date)
     @Prop()
     createdAt: Date;
