@@ -17,6 +17,10 @@ export const BasicService = <T>(
             this.model = model;
         }
 
+        async findById(id: ObjectId): Promise<T | null> {
+            return this.model.findById(id);
+        }
+
         async create(
             createInput: Partial<T>,
             session?: ClientSession

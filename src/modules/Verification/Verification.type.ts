@@ -20,11 +20,11 @@ registerEnumType(VerificationTarget, {
 })
 export class Verification extends TimestampedNode {
     @Field(() => String)
-    @Prop()
+    @Prop({ required: true })
     payload!: string;
 
     @Field(() => String)
-    @Prop()
+    @Prop({ required: true })
     target!: VerificationTarget;
 
     @Field(() => Date, { nullable: true })
@@ -76,6 +76,11 @@ export class Verification extends TimestampedNode {
     @Field(() => Boolean)
     isVerified() {
         return !!this.verifiedAt;
+    }
+
+    @Field(() => Boolean)
+    isExpired() {
+        return new Date() > this.expiresAt;
     }
 }
 

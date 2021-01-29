@@ -45,10 +45,10 @@ export abstract class Timestamped extends Base implements TimeStamps {
 })
 export abstract class TimestampedNode extends Node implements Timestamped {
     @Field(() => Date)
-    @Prop(() => Date)
-    createdAt: Date;
+    @Prop()
+    readonly createdAt: Date;
 
     @Field(() => Date)
-    @Prop(() => Date)
+    @Prop()
     updatedAt: Date;
 }

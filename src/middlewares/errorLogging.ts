@@ -17,6 +17,7 @@ export class ErrorLoggerMiddleware implements MiddlewareInterface<IContext> {
         try {
             return await next();
         } catch (err) {
+            console.log(err);
             this.logger.log({
                 message: err.message,
                 operation: info.operation.operation,

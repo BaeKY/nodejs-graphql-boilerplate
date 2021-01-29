@@ -1,1 +1,4 @@
-export const UserValidationSchema = {};
+export enum UserValidationGroups {
+    Registeration = "Registeration",
+    Admin = "Admin",
+}

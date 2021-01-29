@@ -43,6 +43,15 @@ export class UserUpdateInput implements Partial<UserCreateInput> {
     name?: string;
 }
 
+@InputType()
+export class UserSignInInput {
+    @Field(() => String)
+    email: string;
+
+    @Field(() => String)
+    password: string;
+}
+
 export const _UserFilter = generateFilterType(User, Node, Timestamped, AbsUser);
 export const _UserSorting = generateSortType(User, Node, Timestamped, AbsUser);
 

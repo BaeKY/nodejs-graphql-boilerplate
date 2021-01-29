@@ -5,10 +5,10 @@ import logger from "morgan";
 import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
-import session from "express-session";
-import { ONE_DAY } from "./constants";
-
-const MongoStore = require("connect-mongo")(session);
+import cookieParser from "cookie-parser";
+import { JwtPayload } from "./types/types";
+import { accessTokenVerify } from "./utils/jwtUtils";
+import { ACCESS_COOKIE_NAME } from "./passport/strategies";
 
 class App {
     public server: ApolloServer;
@@ -20,13 +20,26 @@ class App {
         this.app = express();
 
         const schema = await createSchema();
+        // TODO: passport 로직 ㄱㄱ
+
         this.server = new ApolloServer({
             schema,
-            context: async (expressContext) => {
-                expressContext["dateTimeOffsetHours"] = parseInt(
+            context: async (context) => {
+                context["dateTimeOffsetHours"] = parseInt(
                     process.env.DATETIME_OFFSET_HOURS || "9"
                 );
-                return expressContext;
+                // Check AccessToken from "SignedCookies" & Set authinfo to "context"
+                {
+                    const accessToken =
+                        context.req.signedCookies[ACCESS_COOKIE_NAME];
+                    if (accessToken) {
+                        const jwtPayload = accessTokenVerify<JwtPayload>(
+                            accessToken
+                        );
+                        context["userPayload"] = jwtPayload;
+                    }
+                }
+                return context;
             },
             uploads: {
                 // 20MB
@@ -36,24 +49,6 @@ class App {
             introspection: true,
         });
 
-        // MongoDB for Session Storage
-        this.app.use(
-            session({
-                name: "qid",
-                secret: process.env.SESSION_SECRET || "",
-                resave: false,
-                saveUninitialized: false,
-                store: new MongoStore({
-                    url: process.env.DB_URI,
-                }),
-                cookie: {
-                    httpOnly: true,
-                    domain: ".stayjanda.cloud",
-                    sameSite: "lax",
-                    maxAge: ONE_DAY * 14,
-                },
-            })
-        );
         this.middlewares();
         this.server.applyMiddleware({
             app: this.app,
@@ -78,7 +73,13 @@ class App {
     private middlewares = (): void => {
         this.app.use(cors());
         this.app.use(helmet());
-
+        this.app.use(cookieParser(process.env.COOKIE_SECRET));
+        this.app.use(
+            express.urlencoded({
+                extended: true,
+            })
+        );
+        // usePassport(this.app);
         this.setupSystemLogging();
     };
 

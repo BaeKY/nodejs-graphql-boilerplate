@@ -8,15 +8,6 @@ import app from "./app";
 const port = parseInt(process.env.PORT || "4000");
 
 const main = async (): Promise<void> => {
-    // Set typegoose Global Options
-    setGlobalOptions({
-        options: {
-            allowMixed: Severity.ALLOW,
-        },
-        schemaOptions: {
-            timestamps: true,
-        },
-    });
     mongoose
         .connect(process.env.DB_URI || "", {
             useNewUrlParser: true,
@@ -36,5 +27,15 @@ const main = async (): Promise<void> => {
             console.info(err);
         });
 };
+
+// Set typegoose Global Options
+setGlobalOptions({
+    options: {
+        allowMixed: Severity.ALLOW,
+    },
+    schemaOptions: {
+        timestamps: true,
+    },
+});
 
 main();
