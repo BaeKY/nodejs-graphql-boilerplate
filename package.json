@@ -67,7 +67,7 @@
         "start": "cd dist && node index.js"
     },
     "dependencies": {
-        "@typegoose/typegoose": "^7.4.8",
+        "@typegoose/typegoose": "7.4.6",
         "apollo-server-express": "^2.9.7",
         "aws-sdk": "^2.586.0",
         "axios": "^0.19.0",
