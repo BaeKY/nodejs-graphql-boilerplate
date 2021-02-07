@@ -15,7 +15,10 @@ export const VerificationModel = getModelForClass(Verification);
 @Service()
 export class VerificationService extends BasicService(
     Verification,
-    VerificationModel
+    VerificationModel,
+    {
+        createInput: VerificationCreateInput,
+    }
 ) {
     async createStart(input: VerificationCreateInput, session?: ClientSession) {
         const verification = Object.assign(new Verification(), input);

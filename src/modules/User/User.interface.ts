@@ -1,4 +1,10 @@
-import { InterfaceType, Field, registerEnumType } from "type-graphql";
+import {
+    InterfaceType,
+    Field,
+    registerEnumType,
+    InputType,
+    Float,
+} from "type-graphql";
 import bcrypt from "bcryptjs";
 import { Prop } from "@typegoose/typegoose";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
@@ -14,11 +20,11 @@ registerEnumType(UserType, {
     name: "UserType",
 });
 
-@InterfaceType("IUser", {
+@InterfaceType({
     implements: [Node, Timestamped],
-    description: "Default User Interface",
+    description: "Basic User Interface",
 })
-export abstract class AbsUser extends TimestampedNode {
+export class IUser extends TimestampedNode {
     @Field(() => String)
     @Prop({ required: true })
     name: string;
@@ -35,6 +41,14 @@ export abstract class AbsUser extends TimestampedNode {
     @Prop()
     phoneNumber: string;
 
+    @Field(() => String, { defaultValue: "Asia/Seoul" })
+    @Prop({ defualt: "Asia/Seoul" })
+    timezone: string;
+
+    @Field(() => Float, { defaultValue: 9 })
+    @Prop({ default: 9 })
+    offsetHour: number;
+
     @Prop(() => String)
     private password: string;
 
@@ -46,11 +60,10 @@ export abstract class AbsUser extends TimestampedNode {
         return await bcrypt.compare(password, this.password);
     }
 }
-
 @InterfaceType("IAdminUser", {
-    implements: [AbsUser, Node, Timestamped],
+    implements: [IUser, Node, Timestamped],
 })
-export abstract class AbsAdminUser extends AbsUser {
+export abstract class AbsAdminUser extends IUser {
     constructor(args?: any) {
         super(args);
     }
@@ -60,4 +73,35 @@ export abstract class AbsAdminUser extends AbsUser {
     @Field(() => UserType)
     @Prop({ enum: UserType })
     type: UserType = UserType.Admin;
+}
+
+@InputType({
+    isAbstract: true,
+})
+export class IUserCreateInput {
+    @Field(() => String)
+    name: string;
+
+    @Field(() => String)
+    email: string;
+
+    @Field(() => String)
+    password: string;
+}
+
+@InputType({
+    isAbstract: true,
+})
+export class IUserUpdateInput {
+    @Field(() => String, { nullable: true })
+    name?: string;
+}
+
+@InputType()
+export class UserSignInInput {
+    @Field(() => String)
+    email: string;
+
+    @Field(() => String)
+    password: string;
 }

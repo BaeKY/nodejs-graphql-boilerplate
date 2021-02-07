@@ -1,23 +1,52 @@
 import jwt from "jsonwebtoken";
-import { User } from "../modules/User/User.type";
-import { JwtPayload } from "../types/types";
+import { IUser } from "../modules/User/User.interface";
+import { IContext, JwtPayload } from "../types/types";
 
-export const accessTokenGenerate = (user: User, req: any) => {
+export const accessTokenPublish = (
+    user: IUser,
+    context: IContext,
+    cookieName: string
+) => {
+    const token = accessTokenGenerate(
+        user,
+        context.req.get("user-agent") || ""
+    );
+    context.res.cookie(cookieName, token, {
+        httpOnly: true,
+        signed: true,
+    });
+};
+export const removeAccessToken = async (
+    context: IContext,
+    tokenName: string
+): Promise<boolean> => {
+    context.res.clearCookie(tokenName);
+    // TODO: Token 블랙리스트 등록!
+    return true;
+};
+
+export const accessTokenGenerate = (
+    user: IUser,
+    userAgent: string,
+    secret = process.env.JWT_SECRET || ""
+) => {
     const token = jwt.sign(
         {
             _id: user._id.toHexString(),
             email: user.email,
             userType: user.type,
-            timezone: "Asia/Seoul",
-            userAgent: req.get("user-agent"),
+            timezone: user.timezone,
+            userAgent,
             offsetHours: 9,
-            clientHash: "HelloWorld",
         } as JwtPayload,
-        process.env.JWT_SECRET || ""
+        secret
     );
     return token;
 };
 
-export const accessTokenVerify = <T = any>(token: string): T => {
-    return jwt.verify(token, process.env.JWT_SECRET || "") as any;
+export const accessTokenVerify = <T = any>(
+    token: string,
+    secret = process.env.JWT_SECRET || ""
+): T => {
+    return jwt.verify(token, secret) as any;
 };

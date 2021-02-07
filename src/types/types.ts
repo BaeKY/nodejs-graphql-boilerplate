@@ -1,7 +1,6 @@
 import { ExpressContext } from "apollo-server-express";
 import { ClientSession } from "mongoose";
-import { UserType } from "../modules/User/User.interface";
-import { User } from "../modules/User/User.type";
+import { IUser, UserType } from "../modules/User/User.interface";
 
 export interface IContext extends ExpressContext {
     // default => 9
@@ -11,7 +10,7 @@ export interface IContext extends ExpressContext {
 }
 
 export interface IContext {
-    user?: User;
+    user?: IUser;
 }
 
 export interface JwtPayload {

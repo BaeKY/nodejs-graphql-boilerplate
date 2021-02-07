@@ -26,3 +26,5 @@ export const mongoCollectionName = (collectionName: string): string =>
 
 export const PAYMENT_EXP_TIME_CARD = 20 * ONE_MINUTE;
 export const PAYMENT_EXP_TIME_BANK_TRANSFER = ONE_DAY;
+
+export const JWT_USER_COOKIE_NAME = process.env.JWT_USER_COOKIE_NAME || "";

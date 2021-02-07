@@ -1,12 +1,21 @@
-import { getModelForClass } from "@typegoose/typegoose";
-import { Service } from "typedi";
-import { User, UserCreateInput } from "./User.type";
+import {
+    DocumentType,
+    getModelForClass,
+    ReturnModelType,
+} from "@typegoose/typegoose";
+import { User } from "./User.type";
 import { BasicService } from "../Core/Core.service";
 import { validate } from "class-validator";
-import { IContext, JwtPayload } from "../../types/types";
-import { accessTokenGenerate, accessTokenVerify } from "../../utils/jwtUtils";
-import { ACCESS_COOKIE_NAME } from "../../passport/strategies";
-import { UserType } from "./User.interface";
+import { accessTokenGenerate } from "../../utils/jwtUtils";
+import {
+    IUser,
+    IUserCreateInput,
+    IUserUpdateInput,
+    UserSignInInput,
+} from "./User.interface";
+import { ClassType } from "type-graphql";
+import { ClientSession } from "mongoose";
+import { JWT_USER_COOKIE_NAME } from "../../constants";
 
 export const UserModel = getModelForClass(User, {
     schemaOptions: {
@@ -14,50 +23,72 @@ export const UserModel = getModelForClass(User, {
     },
 });
 
-@Service()
-export class UserService extends BasicService<User>(User, UserModel) {
-    // Define custom functions
-    public async saveUser(context: IContext, input: UserCreateInput) {
-        const user = new User(input);
-        await user.setPassword(input.password);
-        const errors = await validate(user);
-        if (errors.length) {
-            throw errors;
+export const BasicUserService = <
+    T extends IUser,
+    CI_T extends IUserCreateInput,
+    UI_T extends IUserUpdateInput
+>(
+    model: ReturnModelType<typeof types.cls>,
+    types: {
+        cls: ClassType<T>;
+        createInput: ClassType<CI_T>;
+        updateInput: ClassType<UI_T>;
+    },
+    jwtSecret: string
+) => {
+    class BasicClass extends BasicService(types.cls, model, {
+        createInput: types.createInput,
+        updateInput: types.updateInput,
+    }) {
+        async createUserOrErr(
+            input: CI_T,
+            session?: ClientSession
+        ): Promise<DocumentType<T>> {
+            return this.create(input, session, async (instance) => {
+                await instance.setPassword(input.password);
+                await validate(instance);
+            });
         }
-        const userDoc = new this.model(user);
-        await userDoc.save({ session: context.session });
-        return userDoc;
-    }
 
-    public async findByEmail(email: string, userType: UserType) {
-        return this.model.findOne({ email, type: userType });
-    }
-
-    public async comparePassword(user: User | null, password: string) {
-        if (!user) {
-            return false;
+        async findByEmail(email: string): Promise<DocumentType<T> | null> {
+            return this.model.findOne({ email } as any);
         }
-        return user.comparePassword(password);
-    }
 
-    public async removeAccessToken(context: IContext): Promise<boolean> {
-        context.res.clearCookie(ACCESS_COOKIE_NAME);
-        // TODO: Token 블랙리스트 등록!
-        return true;
-    }
+        async findUserByEmailAndPasswordOrError(
+            input: UserSignInInput
+        ): Promise<DocumentType<T>> {
+            const user = await this.findByEmail(input.email);
+            if (!user) {
+                throw Error(
+                    "Incorrect password or Unexist User. Please check your id/pw"
+                );
+            }
+            const passwordCompareResult = await user.comparePassword(
+                input.password
+            );
+            if (passwordCompareResult) {
+                throw Error(
+                    "Incorrect password or Unexist User. Please check your id/pw"
+                );
+            }
+            return user;
+        }
 
-    public accessTokenVerify(context: IContext): JwtPayload {
-        const decoded = accessTokenVerify(
-            context.req.signedCookies[ACCESS_COOKIE_NAME]
-        );
-        return decoded as any;
+        public accessTokenGenerate(user: IUser, userAgent: string) {
+            return accessTokenGenerate(user, userAgent, jwtSecret);
+        }
     }
+    return BasicClass;
+};
 
-    public accessTokenPublish(context: IContext, user: User) {
-        const token = accessTokenGenerate(user, context.req);
-        context.res.cookie(ACCESS_COOKIE_NAME, token, {
-            httpOnly: true,
-            signed: true,
-        });
-    }
-}
+export const IUserService = BasicUserService(
+    UserModel,
+    {
+        cls: IUser,
+        createInput: IUserCreateInput,
+        updateInput: IUserUpdateInput,
+    },
+    JWT_USER_COOKIE_NAME
+);
+
+export type IUserService = InstanceType<typeof IUserService>;
