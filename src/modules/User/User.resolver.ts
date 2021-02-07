@@ -1,6 +1,6 @@
 import { Arg, ClassType, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { Service } from "typedi";
-import { IContext } from "../../types/types";
+import { IContext } from "../../types/context";
 import { UserMutationPayload } from "./User.type";
 import { IUserService } from "./User.service";
 import { BasicMutationPayload } from "../Common/MutationPayload.type";

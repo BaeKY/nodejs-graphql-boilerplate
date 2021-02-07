@@ -1,6 +1,6 @@
 import { AuthChecker } from "type-graphql";
 import { UserType } from "../modules/User/User.interface";
-import { IContext } from "../types/types";
+import { IContext } from "../types/context";
 
 // create auth checker function
 export const authChecker: AuthChecker<IContext, UserType> = (

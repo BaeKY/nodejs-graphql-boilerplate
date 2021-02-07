@@ -1,7 +1,7 @@
 import { getModelForClass } from "@typegoose/typegoose";
 import { ClientSession } from "mongoose";
 import { Service } from "typedi";
-import { IContext } from "../../types/types";
+import { IContext } from "../../types/context";
 import { BasicService } from "../Core/Core.service";
 import {
     Verification,

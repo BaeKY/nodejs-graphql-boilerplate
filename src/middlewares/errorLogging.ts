@@ -6,7 +6,7 @@ import {
     ArgumentValidationError,
 } from "type-graphql";
 
-import { IContext } from "../types/types";
+import { IContext } from "../types/context";
 import { Logger } from "../logger";
 
 @Service()

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { IUser } from "../modules/User/User.interface";
-import { IContext, JwtPayload } from "../types/types";
+import { JwtPayload } from "../types/types";
+import { IContext } from "../types/context";
 
 export const accessTokenPublish = (
     user: IUser,

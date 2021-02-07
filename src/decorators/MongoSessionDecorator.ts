@@ -1,6 +1,6 @@
 import { mongoose } from "@typegoose/typegoose";
 import { createMethodDecorator } from "type-graphql";
-import { IContext } from "../types/types";
+import { IContext } from "../types/context";
 
 export function WithMongoSession() {
     return createMethodDecorator<IContext>(async ({ context }, next) => {
