@@ -2,7 +2,7 @@ import { DocumentType, Prop } from "@typegoose/typegoose";
 import { Field, InputType, ObjectType, registerEnumType } from "type-graphql";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
 import { ObjectId } from "mongodb";
-import { MutationPayload } from "../Common/MutationPayload.type";
+import { MutationResponse } from "../Common/MutationPayload.type";
 import { ONE_HOUR, ONE_MINUTE } from "../../constants";
 
 export enum VerificationTarget {
@@ -102,7 +102,7 @@ export class VerificationVerifyInput extends VerificationCreateInput {
     _id!: ObjectId;
 }
 
-export const VerificationMutationPayload = MutationPayload(
+export const VerificationMutationPayload = MutationResponse(
     Verification,
     "Verification"
 );

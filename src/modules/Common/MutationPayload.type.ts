@@ -4,7 +4,7 @@ import { UserError } from "./error.interface";
 const CLASS_NAME = "MutationPayload";
 
 @ObjectType()
-export class BasicMutationPayload {
+export class BasicMutationResponse {
     constructor(ok?: boolean) {
         this.ok = ok === false ? false : true;
         this.errors = [];
@@ -24,9 +24,9 @@ export class BasicMutationPayload {
     }
 }
 
-export const MutationPayload = <T>(tClass: ClassType<T>, name: string) => {
+export const MutationResponse = <T>(tClass: ClassType<T>, name: string) => {
     @ObjectType(`${name || tClass.name}${CLASS_NAME}`)
-    class BaseResponseClass extends BasicMutationPayload {
+    class BaseResponseClass extends BasicMutationResponse {
         constructor(ok?: boolean) {
             super(ok);
         }
@@ -41,9 +41,9 @@ export const MutationPayload = <T>(tClass: ClassType<T>, name: string) => {
     return BaseResponseClass;
 };
 
-export const MutationPayloadArr = <T>(tClass: ClassType<T>, name: string) => {
+export const MutationListResponse = <T>(tClass: ClassType<T>, name: string) => {
     @ObjectType(`${name || tClass.name}${CLASS_NAME}`)
-    class BaseResponseClass extends BasicMutationPayload {
+    class BaseResponseClass extends BasicMutationResponse {
         constructor(ok?: boolean) {
             super(ok);
         }

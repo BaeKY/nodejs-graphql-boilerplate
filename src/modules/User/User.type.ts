@@ -2,10 +2,6 @@ import { Prop } from "@typegoose/typegoose";
 import { Field, InputType, ObjectType } from "type-graphql";
 import { generateFilterType } from "../../helpers/decorators/filter/generateFilterType";
 import { generateSortType } from "../../helpers/decorators/sort/generateSortType";
-import {
-    MutationPayload,
-    MutationPayloadArr,
-} from "../Common/MutationPayload.type";
 import { Node, Timestamped } from "../Core/Core.interface";
 import { IUser, UserType } from "./User.interface";
 
@@ -45,11 +41,3 @@ export class UserUpdateInput implements Partial<UserCreateInput> {
 
 export const _UserFilter = generateFilterType(User, Node, Timestamped, IUser);
 export const _UserSorting = generateSortType(User, Node, Timestamped, IUser);
-
-export const UserMutationPayload = MutationPayload(User, "User");
-export type UserMutationPayload = InstanceType<typeof UserMutationPayload>;
-
-export const UserListMutationPayload = MutationPayloadArr(User, "UserSignUp");
-export type UserListMutationPayload = InstanceType<
-    typeof UserListMutationPayload
->;

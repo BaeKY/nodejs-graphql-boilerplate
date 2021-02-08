@@ -5,7 +5,7 @@ import {
     Strategy as JwtStrategy,
     VerifiedCallback,
 } from "passport-jwt";
-import { JwtPayload } from "../types/types";
+import { UserJWTPayload } from "../types/types";
 
 export const ACCESS_COOKIE_NAME = process.env.ACCESS_COOKIE_NAME || "jwt";
 export const PassportJwtStrategy = new JwtStrategy(
@@ -24,7 +24,7 @@ export const PassportJwtStrategy = new JwtStrategy(
         // jwtFromRequest: (req) => req.signedCookies[ACCESS_COOKIE_NAME],
         secretOrKey: process.env.JWT_SECRET,
     },
-    async (req: Request, payload: JwtPayload, done: VerifiedCallback) => {
+    async (req: Request, payload: UserJWTPayload, done: VerifiedCallback) => {
         try {
             console.log("여기는??");
             // Token 탈취여부 검사

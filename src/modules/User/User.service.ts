@@ -6,7 +6,7 @@ import {
 import { User } from "./User.type";
 import { BasicService } from "../Core/Core.service";
 import { validate } from "class-validator";
-import { accessTokenGenerate } from "../../utils/jwtUtils";
+import { jwtEncode } from "../../utils/jwtUtils";
 import {
     IUser,
     IUserCreateInput,
@@ -15,7 +15,6 @@ import {
 } from "./User.interface";
 import { ClassType } from "type-graphql";
 import { ClientSession } from "mongoose";
-import { JWT_USER_COOKIE_NAME } from "../../constants";
 
 export const UserModel = getModelForClass(User, {
     schemaOptions: {
@@ -74,8 +73,8 @@ export const BasicUserService = <
             return user;
         }
 
-        public accessTokenGenerate(user: IUser, userAgent: string) {
-            return accessTokenGenerate(user, userAgent, jwtSecret);
+        public jwtEncode(user: IUser, userAgent: string) {
+            return jwtEncode(user, userAgent, jwtSecret);
         }
     }
     return BasicClass;
@@ -88,7 +87,7 @@ export const IUserService = BasicUserService(
         createInput: IUserCreateInput,
         updateInput: IUserUpdateInput,
     },
-    JWT_USER_COOKIE_NAME
+    process.env.JWT_SECRET || ""
 );
 
 export type IUserService = InstanceType<typeof IUserService>;

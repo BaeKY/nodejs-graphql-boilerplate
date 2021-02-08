@@ -1,6 +1,6 @@
 import { UserType } from "../modules/User/User.interface";
 
-export interface JwtPayload {
+export interface UserJWTPayload {
     _id: string;
     email: string;
     userType: UserType;

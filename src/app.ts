@@ -6,9 +6,6 @@ import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
 import cookieParser from "cookie-parser";
-import { JwtPayload } from "./types/types";
-import { accessTokenVerify } from "./utils/jwtUtils";
-import { ACCESS_COOKIE_NAME } from "./passport/strategies";
 
 class App {
     public server: ApolloServer;
@@ -28,17 +25,6 @@ class App {
                 context["dateTimeOffsetHours"] = parseInt(
                     process.env.DATETIME_OFFSET_HOURS || "9"
                 );
-                // Check AccessToken from "SignedCookies" & Set authinfo to "context"
-                {
-                    const accessToken =
-                        context.req.signedCookies[ACCESS_COOKIE_NAME];
-                    if (accessToken) {
-                        const jwtPayload = accessTokenVerify<JwtPayload>(
-                            accessToken
-                        );
-                        context["userPayload"] = jwtPayload;
-                    }
-                }
                 return context;
             },
             uploads: {

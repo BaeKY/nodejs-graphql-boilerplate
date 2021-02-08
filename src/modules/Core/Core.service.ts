@@ -40,13 +40,14 @@ export const BasicService = <T, CI_T, UI_T>(
             updateInput: UI_T,
             session?: ClientSession
         ) {
-            return this.model.updateOne(
-                { _id } as any,
+            const t = this.model.findByIdAndUpdate(
+                _id,
                 {
                     $set: updateInput,
                 } as any,
                 { session }
             );
+            return t;
         }
 
         async delete(id: ObjectId, session?: ClientSession) {
