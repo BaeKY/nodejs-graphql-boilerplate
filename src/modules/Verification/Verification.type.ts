@@ -1,7 +1,6 @@
 import { DocumentType, Prop } from "@typegoose/typegoose";
 import { Field, InputType, ObjectType, registerEnumType } from "type-graphql";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
-import { ObjectId } from "mongodb";
 import { MutationResponse } from "../Common/MutationPayload.type";
 import { ONE_HOUR, ONE_MINUTE } from "../../constants";
 
@@ -97,9 +96,6 @@ export class VerificationCreateInput {
 export class VerificationVerifyInput extends VerificationCreateInput {
     @Field(() => String)
     code: string;
-
-    @Field(() => ObjectId)
-    _id!: ObjectId;
 }
 
 export const VerificationMutationPayload = MutationResponse(

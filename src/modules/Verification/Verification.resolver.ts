@@ -1,8 +1,9 @@
+import { ObjectId } from "mongodb";
 import { Arg, Ctx, Mutation, Resolver } from "type-graphql";
 import { Service } from "typedi";
 import { WithMongoSession } from "../../decorators/MongoSessionDecorator";
 import { IContext } from "../../types/context";
-import { BasicMutationPayload } from "../Common/MutationPayload.type";
+import { BasicMutationResponse } from "../Common/MutationPayload.type";
 import { VerificationService } from "./Verification.service";
 import {
     VerificationMutationPayload,
@@ -28,19 +29,29 @@ export class VerificationResolver {
             input,
             context.session
         );
+        // 진행중인 VerificationId cookie에 저장
+        context.res.cookie("verification", result._id.toHexString(), {
+            httpOnly: true,
+            signed: true,
+        });
         response.setData(result);
         return response;
     }
 
     @WithMongoSession()
-    @Mutation(() => BasicMutationPayload)
+    @Mutation(() => BasicMutationResponse)
     async VerificationComplete(
         @Ctx() context: IContext,
         @Arg("input", () => VerificationVerifyInput)
         input: VerificationVerifyInput
     ) {
-        const response = new BasicMutationPayload();
-        await this.verificationService.verifyOrError(input, context.session);
+        const response = new BasicMutationResponse();
+        const verificationIdFromCookie = context.req.signedCookies.verification;
+        await this.verificationService.verifyOrError(
+            new ObjectId(verificationIdFromCookie),
+            input,
+            context.session
+        );
         return response;
     }
 }
