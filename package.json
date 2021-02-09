@@ -63,8 +63,9 @@
         "dev": "ts-node-dev --respawn --no-notify --rs src/index.ts --env=dev",
         "build": "tsc",
         "prebuild": "rm -rf dist dist.zip",
-        "postbuild": "npx copy src/api/**/*.graphql src/api/**/*.html dist/api && 7z a dist.zip ./dist/*",
-        "start": "cd dist && node index.js"
+        "postbuild": "cp package.json .env.prod dist/ && npx copy src/api/**/*.graphql src/api/**/*.html dist/api",
+        "pkg": "7z a dist.zip ./dist/*",
+        "start": "node index.js --env=prod"
     },
     "dependencies": {
         "@typegoose/typegoose": "7.4.6",

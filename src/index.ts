@@ -1,7 +1,24 @@
 import { mongoose, setGlobalOptions, Severity } from "@typegoose/typegoose";
 import dotenv from "dotenv";
-dotenv.config({
-    path: ".env",
+import path from "path";
+{
+    const env = process.argv.find((s) => s.includes("--env"))?.split("=")[1];
+    dotenv.config({
+        path: path.join(
+            __dirname,
+            env?.includes("prod") ? `.env.prod` : `../.env.dev`
+        ),
+    });
+}
+
+// Set typegoose Global Options
+setGlobalOptions({
+    options: {
+        allowMixed: Severity.ALLOW,
+    },
+    schemaOptions: {
+        timestamps: true,
+    },
 });
 import app from "./app";
 
@@ -27,15 +44,5 @@ const main = async (): Promise<void> => {
             console.info(err);
         });
 };
-
-// Set typegoose Global Options
-setGlobalOptions({
-    options: {
-        allowMixed: Severity.ALLOW,
-    },
-    schemaOptions: {
-        timestamps: true,
-    },
-});
 
 main();
