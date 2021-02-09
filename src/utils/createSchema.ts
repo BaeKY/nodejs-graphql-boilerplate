@@ -3,7 +3,7 @@ import { ObjectIdScalar } from "../types/scalars/ObjectId.scalar";
 import { authChecker } from "./authChecker";
 import { GraphQLSchema } from "graphql";
 import { JSONObjectResolver } from "graphql-scalars";
-import { ErrorLoggerMiddleware } from "../middlewares/errorLogging";
+import { ErrorLoggingMiddleware } from "../middlewares/errorLogging";
 import { ObjectId } from "mongodb";
 import { TypegooseMiddleware } from "../middlewares/typegoose-middleware";
 import Container from "typedi";
@@ -20,7 +20,7 @@ export const createSchema = async (): Promise<GraphQLSchema> =>
         resolvers: [resolverPaths],
         // 순서대로 실행된다!
         // ex) ErrorLoggerMiddleware => Start, TypegooseMiddleware => Start, TypegooseMiddleware => End, ErrorLoggerMiddleware => End
-        globalMiddlewares: [ErrorLoggerMiddleware, TypegooseMiddleware],
+        globalMiddlewares: [ErrorLoggingMiddleware, TypegooseMiddleware],
         scalarsMap: [
             {
                 type: ObjectId,
