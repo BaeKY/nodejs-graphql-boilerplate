@@ -7,6 +7,7 @@ import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
 import cookieParser from "cookie-parser";
 import { IS_DEV_ENV } from "./constants";
+import { ComplexityPlugin } from "./plugins/complexity";
 
 class App {
     public server: ApolloServer;
@@ -32,6 +33,7 @@ class App {
                 // 20MB
                 maxFieldSize: 20480000,
             },
+            plugins: [ComplexityPlugin(schema)],
             playground,
             introspection: true,
             debug: IS_DEV_ENV,

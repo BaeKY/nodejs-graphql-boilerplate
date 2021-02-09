@@ -2,6 +2,10 @@ export const NODE_ENV = process.env.NODE_ENV || "dev";
 
 export const IS_DEV_ENV = NODE_ENV === "dev";
 
+export const ALLOWED_COMPLEXITY = parseInt(
+    process.env.ALLOWED_COMPLEXITY || "100"
+);
+
 /**
  * 6000
  */
