@@ -6,6 +6,7 @@ import { ApolloServer } from "apollo-server-express";
 import express, { Express } from "express";
 import { createSchema } from "./utils/createSchema";
 import cookieParser from "cookie-parser";
+import { IS_DEV_ENV } from "./constants";
 
 class App {
     public server: ApolloServer;
@@ -33,6 +34,7 @@ class App {
             },
             playground,
             introspection: true,
+            debug: IS_DEV_ENV,
         });
 
         this.middlewares();

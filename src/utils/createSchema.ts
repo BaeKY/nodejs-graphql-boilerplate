@@ -18,7 +18,9 @@ export const createSchema = async (): Promise<GraphQLSchema> =>
     buildSchema({
         emitSchemaFile: true,
         resolvers: [resolverPaths],
-        globalMiddlewares: [TypegooseMiddleware, ErrorLoggerMiddleware],
+        // 순서대로 실행된다!
+        // ex) ErrorLoggerMiddleware => Start, TypegooseMiddleware => Start, TypegooseMiddleware => End, ErrorLoggerMiddleware => End
+        globalMiddlewares: [ErrorLoggerMiddleware, TypegooseMiddleware],
         scalarsMap: [
             {
                 type: ObjectId,
