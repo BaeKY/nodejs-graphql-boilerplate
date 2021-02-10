@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { Arg, Ctx, Mutation, Resolver } from "type-graphql";
 import { Service } from "typedi";
-import { WithMongoSession } from "../../decorators/MongoSessionDecorator";
+import { WithMongoSession } from "../../decorators/MongoSession.decorator";
 import { IContext } from "../../types/context";
 import { BasicMutationResponse } from "../Common/MutationPayload.type";
 import { VerificationService } from "./Verification.service";
