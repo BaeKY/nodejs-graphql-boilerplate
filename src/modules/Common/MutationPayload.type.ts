@@ -1,3 +1,4 @@
+import { ValidationError } from "class-validator";
 import { ClassType, Field, ObjectType } from "type-graphql";
 import { UserError } from "./error.interface";
 
@@ -21,6 +22,13 @@ export class BasicMutationResponse {
         }
         this.errors.push(error);
         this.ok = ok;
+    }
+
+    setArgumentError(errors: ValidationError[], ok = false) {
+        this.ok = ok;
+        this.errors.push(
+            ...errors.map((v) => UserError.fromValidationError(v))
+        );
     }
 }
 

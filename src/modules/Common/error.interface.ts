@@ -1,26 +1,24 @@
-import { Authorized, Field, InterfaceType, ObjectType } from "type-graphql";
-
-@InterfaceType({
-    resolveType: (value) => value.constructor.name,
-})
-export abstract class AbsError implements Error {
-    @Field(() => String)
-    message: string;
-
-    @Field(() => String)
-    name: string;
-
-    @Field(() => [String])
-    @Authorized() // Admin만 볼수있음!
-    stack?: string;
-}
+import { ValidationError } from "class-validator";
+import { Field, ObjectType } from "type-graphql";
+import { objectToString } from "../../utils/utils";
 
 @ObjectType({
     description: "비지니스 레벨 에러",
 })
-export class UserError extends AbsError {
+export class UserError {
+    static fromValidationError(validationError: ValidationError) {
+        return Object.assign(new UserError(), {
+            field: validationError.property || "",
+            value: validationError.value || "",
+            details: objectToString(validationError.constraints),
+        } as UserError);
+    }
+
     @Field(() => String)
     field: string;
+
+    @Field(() => String)
+    value: string;
 
     @Field(() => String)
     details: string;

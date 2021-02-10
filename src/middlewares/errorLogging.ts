@@ -4,11 +4,33 @@ import {
     NextFn,
     ResolverData,
     ArgumentValidationError,
+    UnauthorizedError,
 } from "type-graphql";
 
 import { IContext } from "../types/context";
 import { Logger } from "../logger";
 import { GraphQLResolveInfo } from "graphql";
+
+@Service()
+export class ErrorLoggingMiddleware implements MiddlewareInterface<IContext> {
+    constructor(private readonly logger: Logger) {}
+
+    async use({ context, info }: ResolverData<IContext>, next: NextFn) {
+        try {
+            return await next();
+        } catch (err) {
+            const payload = toErrorLogObject(context, info, err);
+            this.logger.error(payload);
+            if (!isAllowedErrorForClient(err)) {
+                // TODO: Slask Notification ㄱㄱ
+                throw new Error(
+                    "Sorry... Unknown error occurred. Try again later!"
+                );
+            }
+            throw err;
+        }
+    }
+}
 
 interface LogObject {
     profile?: {
@@ -17,14 +39,13 @@ interface LogObject {
         ip: string;
         operation: string;
     };
-    resTime?: number;
     error?: any;
 }
 
-const toErrorLogObject = (
+export const toErrorLogObject = (
     context: IContext,
     info: GraphQLResolveInfo,
-    error: Error
+    error?: Error
 ): LogObject => ({
     profile: {
         operation: `${info.operation.operation}.${info.fieldName}`,
@@ -33,36 +54,14 @@ const toErrorLogObject = (
         userAgent: context.req.get("user-agent") || "",
         ip: context.req.ip,
     },
-    error: {
+    error: error && {
         name: error.name,
         message: error.message,
         stack: error.stack,
     },
 });
 
-@Service()
-export class ErrorLoggingMiddleware implements MiddlewareInterface<IContext> {
-    constructor(private readonly logger: Logger) {}
+const ACCEPT_ERROR_LIST = [UnauthorizedError, ArgumentValidationError];
 
-    async use({ context, info }: ResolverData<IContext>, next: NextFn) {
-        const start = Date.now();
-        let payload: LogObject = {};
-        try {
-            return await next();
-        } catch (err) {
-            payload = toErrorLogObject(context, info, err);
-
-            if (!(err instanceof ArgumentValidationError)) {
-                // BusinessLogic 상의 에러임
-                // hide errors from db like printing sql query
-                throw new Error(
-                    "Sorry... Unknown error occurred. Try again later!"
-                );
-            }
-            throw err;
-        } finally {
-            payload.resTime = Date.now() - start;
-            this.logger.error(payload);
-        }
-    }
-}
+const isAllowedErrorForClient = (err: any) =>
+    ACCEPT_ERROR_LIST.some((errType) => err instanceof errType);
