@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { ClassType, registerEnumType } from "type-graphql";
 import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
-import { getMetadataStorage } from "../types";
+import { DIVIDER, getMetadataStorage } from "../types";
 import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
+import { isClass } from "../../../utils/utils";
 
 /**
  * Generate a type-graphql InputType from a @ObjectType decorated
@@ -21,34 +22,59 @@ export const generateSortType = <T>(
     const graphQLModel = getTypeGraphqlModel(type, typeGraphQLMetadata);
 
     const sortContainer = {} as any;
-
-    const addField = (t: Function) => {
-        const filtersData = getSortingsData(t);
-
-        // Simulate creation of fields for this class/InputType by calling @Field()
-        for (const { field } of filtersData) {
-            // When dealing with methods decorated with @Field, we need to lookup the GraphQL
-            // name and use that for our filter name instead of the plain method name
-            const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
-                (fr) => fr.target === type && fr.methodName === field
-            );
-
-            const fieldName = graphQLField
-                ? graphQLField.schemaName
-                : field.toString();
-            sortContainer[`${fieldName}_desc`] = `${fieldName}_desc`;
-            sortContainer[`${fieldName}_asc`] = `${fieldName}_asc`;
-        }
-
-        registerEnumType(sortContainer, {
-            name: `_${graphQLModel.name}Sort`,
-            description: "Auto generated sort type",
-        });
-    };
+    const addField = generateAddFieldFunc(typeGraphQLMetadata, sortContainer);
     addField(type);
     types.forEach((t) => addField(t));
 
+    registerEnumType(sortContainer, {
+        name: `_${graphQLModel.name}Sort`,
+        description: "Auto generated sort type",
+    });
     return () => [sortContainer];
+};
+
+const generateAddFieldFunc = (
+    typeGraphQLMetadata: MetadataStorage,
+    sortContainer: any
+) => (t: Function, name?: string) => {
+    const sortingData = getSortingsData(t);
+
+    // Simulate creation of fields for this class/InputType by calling @Field()
+    for (const { field, getReturnType } of sortingData) {
+        // When dealing with methods decorated with @Field, we need to lookup the GraphQL
+        // name and use that for our filter name instead of the plain method name
+        const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
+            (fr) => fr.target === t && fr.methodName === field
+        );
+        const fieldName = graphQLField
+            ? graphQLField.schemaName
+            : field.toString();
+        const baseReturnType =
+            typeof getReturnType === "function" ? getReturnType() : String;
+
+        if (isClass(baseReturnType) && !name) {
+            generateAddFieldFunc(typeGraphQLMetadata, sortContainer)(
+                baseReturnType,
+                String(fieldName)
+            );
+        } else if (
+            baseReturnType instanceof Array &&
+            isClass(baseReturnType[0]) &&
+            !name
+        ) {
+            generateAddFieldFunc(typeGraphQLMetadata, sortContainer)(
+                baseReturnType[0],
+                String(fieldName)
+            );
+        } else {
+            const sortName = `${
+                name ? name.concat("_") : ""
+            }${fieldName}${DIVIDER}`;
+
+            sortContainer[sortName.concat("desc")] = sortName.concat("desc");
+            sortContainer[sortName.concat("asc")] = sortName.concat("asc");
+        }
+    }
 };
 
 const getSortingsData = (type: Function) => {
@@ -69,7 +95,7 @@ const getTypeGraphqlModel = (
 
     if (!graphQLModel) {
         throw new Error(
-            `Please decorate your class "${type}" with @ObjectType if you want to filter it`
+            `Please decorate your class "${type}" with @ObjectType if you want to sorting it`
         );
     }
     return graphQLModel;

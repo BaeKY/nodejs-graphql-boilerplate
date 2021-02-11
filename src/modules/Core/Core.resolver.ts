@@ -4,12 +4,21 @@ import { Service } from "typedi";
 import { AccessLogging } from "../../decorators/AccessLogging.decorator";
 import { handleBusinessLogicError } from "../../helpers/handleBusinessLogicFunction";
 import { BasicMutationResponse } from "../Common/MutationPayload.type";
+import { _UserFilter, _UserSorting } from "../User/User.type";
+
+export class Test {
+    public hello?: string;
+}
 @Service()
 @Resolver()
 export class CoreResolver {
     @AccessLogging()
     @Query(() => String)
-    greeting() {
+    greeting(
+        @Arg("filter", _UserFilter) filter: any,
+        @Arg("sort", _UserSorting) sort: any
+    ) {
+        console.log(filter, sort);
         return "HelloWorld";
     }
 

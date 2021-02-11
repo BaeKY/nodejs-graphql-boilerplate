@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Field, InputType, ClassType } from "type-graphql";
 import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
-import { getMetadataStorage } from "../types";
+import { DIVIDER, getMetadataStorage } from "../types";
 import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
 import { ObjectClassMetadata } from "type-graphql/dist/metadata/definitions/object-class-metdata";
+import { isClass } from "../../../utils/utils";
 
 /**
  * Generate a type-graphql InputType from a @ObjectType decorated
@@ -28,38 +29,70 @@ export const generateFilterType = <T>(
         [filterName]: class {},
     };
 
+    const cls = filterContainer[filterName];
+
     // Call the @InputType decorator on that class
-    InputType()(filterContainer[filterName]);
+    InputType()(cls);
 
-    Field(() => [filterContainer[filterName]], {
+    Field(() => [cls], {
         nullable: true,
-    })(filterContainer[filterName].prototype, "AND");
+    })(cls.prototype, "AND");
 
-    Field(() => [filterContainer[filterName]], {
+    Field(() => [cls], {
         nullable: true,
-    })(filterContainer[filterName].prototype, "OR");
+    })(cls.prototype, "OR");
 
-    const addField = (t: Function) => {
-        // Simulate creation of fields for this class/InputType by calling @Field()
-        const filtersData = getFiltersData(t);
-        for (const { field, operators, getReturnType } of filtersData) {
-            // When dealing with methods decorated with @Field, we need to lookup the GraphQL
-            // name and use that for our filter name instead of the plain method name
-            const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
-                (fr) => fr.target === type && fr.methodName === field
+    const addField = generateAddFieldFunc(typeGraphQLMetadata, cls);
+    addField(type);
+    types.forEach((t) => addField(t));
+
+    const result = () => cls;
+    return result;
+};
+
+const generateAddFieldFunc = <T>(
+    typeGraphQLMetadata: MetadataStorage,
+    cls: ClassType<T>
+) => (type: Function, name?: string) => {
+    // Simulate creation of fields for this class/InputType by calling @Field()
+    const filtersData = getFiltersData(type);
+    for (const { field, operators, getReturnType } of filtersData) {
+        // When dealing with methods decorated with @Field, we need to lookup the GraphQL
+        // name and use that for our filter name instead of the plain method name
+        const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
+            (fr) => fr.target === type && fr.methodName === field
+        );
+
+        const fieldName = graphQLField ? graphQLField.schemaName : field;
+
+        const baseReturnType =
+            typeof getReturnType === "function" ? getReturnType() : String;
+
+        if (isClass(baseReturnType) && !name) {
+            generateAddFieldFunc(typeGraphQLMetadata, cls)(
+                baseReturnType,
+                String(fieldName)
             );
-
-            const fieldName = graphQLField ? graphQLField.schemaName : field;
-
-            const baseReturnType =
-                typeof getReturnType === "function" ? getReturnType() : String;
+        } else if (
+            baseReturnType instanceof Array &&
+            isClass(baseReturnType[0])
+        ) {
+            generateAddFieldFunc(typeGraphQLMetadata, cls)(
+                baseReturnType[0],
+                String(fieldName)
+            );
+        } else {
             Field(() => baseReturnType, { nullable: true })(
-                filterContainer[filterName].prototype,
-                `${String(fieldName)}_eq`
+                cls.prototype,
+                `${name ? name.concat("_") : ""}${String(
+                    fieldName
+                )}${DIVIDER}eq`
             );
             Field(() => baseReturnType, { nullable: true })(
-                filterContainer[filterName].prototype,
-                `${String(fieldName)}_not_eq`
+                cls.prototype,
+                `${name ? name.concat("_") : ""}${String(
+                    fieldName
+                )}${DIVIDER}not_eq`
             );
             for (const operator of operators) {
                 // @Field에 들어가는 리턴타입임.
@@ -70,17 +103,14 @@ export const generateFilterType = <T>(
                         : () => baseReturnType;
 
                 Field(returnTypeFunction, { nullable: true })(
-                    filterContainer[filterName].prototype,
-                    `${String(fieldName)}_${operator}`
+                    cls.prototype,
+                    `${name ? name.concat("_") : ""}${String(
+                        fieldName
+                    )}${DIVIDER}${operator}`
                 );
             }
         }
-    };
-    addField(type);
-    types.forEach((t) => addField(t));
-
-    const result = () => filterContainer[filterName];
-    return result;
+    }
 };
 
 const getFiltersData = (type: Function) => {

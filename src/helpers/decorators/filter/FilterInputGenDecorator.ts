@@ -7,22 +7,7 @@ import { ReturnTypeFunc, OperatorType, getMetadataStorage } from "../types";
  * @param operators
  * @param returnTypeFunction
  */
-export function ValueFilter(
-    operators: OperatorType | OperatorType[],
-    returnTypeFunction?: ReturnTypeFunc
-): PropertyDecorator {
-    return (prototype, field: string | symbol) => {
-        const metadataStorage = getMetadataStorage();
-        metadataStorage.filters.push({
-            field,
-            getReturnType: returnTypeFunction,
-            operators: typeof operators === "string" ? [operators] : operators,
-            target: prototype.constructor,
-        });
-    };
-}
-
-export function ArrayFilter(
+export function Filter(
     operators: OperatorType | OperatorType[],
     returnTypeFunction?: ReturnTypeFunc
 ): PropertyDecorator {

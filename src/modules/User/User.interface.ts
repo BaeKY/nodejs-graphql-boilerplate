@@ -8,6 +8,9 @@ import {
 import bcrypt from "bcryptjs";
 import { Prop } from "@typegoose/typegoose";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
+import { Filter } from "../../helpers/decorators/filter/FilterInputGenDecorator";
+import { Tag } from "../Common/Tag.type";
+import { Sort } from "../../helpers/decorators/sort/SortDecorator";
 
 const BCRYPT_HASH_SALT = parseInt(process.env.HASH_SALT || "12");
 
@@ -27,6 +30,7 @@ registerEnumType(UserType, {
 export class IUser extends TimestampedNode {
     @Field(() => String)
     @Prop({ required: true })
+    @Filter(["contains", "not_contains"], () => String)
     name: string;
 
     @Field(() => UserType)
@@ -35,19 +39,30 @@ export class IUser extends TimestampedNode {
 
     @Field(() => String)
     @Prop({ required: true })
+    @Filter(["contains", "not_contains", "in", "not_in"], () => String)
     email: string;
 
     @Field(() => String)
     @Prop()
+    @Filter(["contains", "not_contains", "in", "not_in"], () => String)
     phoneNumber: string;
 
     @Field(() => String, { defaultValue: "Asia/Seoul" })
     @Prop({ defualt: "Asia/Seoul" })
+    @Filter(["contains", "not_contains", "in", "not_in"], () => String)
     timezone: string;
 
     @Field(() => Float, { defaultValue: 9 })
     @Prop({ default: 9 })
+    @Filter(["in", "not_in", "gte", "lte", "gt", "lt"], () => Float)
+    @Sort()
     offsetHour: number;
+
+    @Field(() => [Tag], { nullable: true })
+    @Prop()
+    @Filter(["in", "not_in", "gte", "lte", "gt", "lt"], () => [Tag])
+    @Sort(() => Tag)
+    test: Tag[];
 
     @Prop(() => String)
     private password: string;

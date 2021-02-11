@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { GraphQLScalarType } from "graphql";
+import { ClassType } from "type-graphql";
+
+export const DIVIDER = "__";
 
 export type MetadataStorage = {
     filters: FiltersCollectionType[];
@@ -56,7 +59,7 @@ export const RECURSIVE_RETURN_TYPE_OPERATORS = ["AND", "OR"];
 
 export type ReturnTypeFunc = (
     type?: void
-) => GraphQLScalarType | Function | object;
+) => GraphQLScalarType | Function | ClassType | object;
 
 export type FiltersCollectionType = {
     target: Function;
@@ -69,6 +72,7 @@ export type SortingCollectionType = {
     target: Function;
     field: string | symbol;
     sortOpts: SortOpt[];
+    getReturnType?: ReturnTypeFunc;
 };
 
 export type SortOpt = "asc" | "desc";
