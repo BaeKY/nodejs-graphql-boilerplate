@@ -2,8 +2,14 @@ import { Prop } from "@typegoose/typegoose";
 import { Field, InputType, ObjectType } from "type-graphql";
 import { generateFilterType } from "../../helpers/decorators/filter/generateFilterType";
 import { generateSortType } from "../../helpers/decorators/sort/generateSortType";
+import { MutationResponse } from "../Common/MutationPayload.type";
 import { Node, Timestamped } from "../Core/Core.interface";
-import { IUser, UserType } from "./User.interface";
+import {
+    IUser,
+    IUserCreateInput,
+    IUserUpdateInput,
+    UserType,
+} from "./User.interface";
 
 @ObjectType({
     implements: [Node, Timestamped, IUser],
@@ -15,7 +21,7 @@ export class User extends IUser {
 }
 
 @InputType()
-export class UserCreateInput implements Partial<User> {
+export class UserCreateInput implements IUserCreateInput {
     @Field(() => String)
     email: string;
 
@@ -31,7 +37,7 @@ export class UserCreateInput implements Partial<User> {
 }
 
 @InputType()
-export class UserUpdateInput implements Partial<UserCreateInput> {
+export class UserUpdateInput implements IUserUpdateInput {
     @Field(() => String, { nullable: true })
     phoneNumber?: string;
 
@@ -39,5 +45,17 @@ export class UserUpdateInput implements Partial<UserCreateInput> {
     name?: string;
 }
 
+@InputType()
+export class UserSignInInput {
+    @Field(() => String)
+    email: string;
+
+    @Field(() => String)
+    password: string;
+}
+
 export const _UserFilter = generateFilterType(User, Node, Timestamped, IUser);
 export const _UserSorting = generateSortType(User, Node, Timestamped, IUser);
+
+export const UserMutationResponse = MutationResponse(IUser, "User");
+export type UserMutationResponse = InstanceType<typeof UserMutationResponse>;

@@ -96,12 +96,3 @@ export class IUserUpdateInput {
     @Field(() => String, { nullable: true })
     name?: string;
 }
-
-@InputType()
-export class UserSignInInput {
-    @Field(() => String)
-    email: string;
-
-    @Field(() => String)
-    password: string;
-}

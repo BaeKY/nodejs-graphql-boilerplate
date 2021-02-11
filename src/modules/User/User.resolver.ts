@@ -1,4 +1,12 @@
-import { Arg, ClassType, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import {
+    Arg,
+    ArgumentValidationError,
+    ClassType,
+    Ctx,
+    Mutation,
+    Query,
+    Resolver,
+} from "type-graphql";
 import { Service } from "typedi";
 import { IContext } from "../../types/context";
 import { IUserService } from "./User.service";
@@ -6,8 +14,10 @@ import {
     BasicMutationResponse,
     MutationResponse,
 } from "../Common/MutationPayload.type";
-import { WithMongoSession } from "../../decorators/MongoSessionDecorator";
-import { IUser, IUserCreateInput, UserSignInInput } from "./User.interface";
+import { WithMongoSession } from "../../decorators/MongoSession.decorator";
+import { IUser, IUserCreateInput } from "./User.interface";
+import { validate } from "class-validator";
+import { UserSignInInput } from "./User.type";
 
 export const BasicUserResolver = <S extends IUserService>(
     name: string,
@@ -44,6 +54,10 @@ export const BasicUserResolver = <S extends IUserService>(
                 input,
                 context.session
             );
+            const validationErrors = await validate(user);
+            if (validationErrors.length) {
+                throw new ArgumentValidationError(validationErrors);
+            }
             const token = this.tokenGenerate(context, user as any);
             this.tokenSetToCookie(context, token);
             result.setData(user);

@@ -3,18 +3,13 @@ import {
     getModelForClass,
     ReturnModelType,
 } from "@typegoose/typegoose";
-import { User } from "./User.type";
+import { User, UserSignInInput } from "./User.type";
 import { BasicService } from "../Core/Core.service";
-import { validate } from "class-validator";
 import { jwtEncode } from "../../utils/jwtUtils";
-import {
-    IUser,
-    IUserCreateInput,
-    IUserUpdateInput,
-    UserSignInInput,
-} from "./User.interface";
+import { IUser, IUserCreateInput, IUserUpdateInput } from "./User.interface";
 import { ClassType } from "type-graphql";
 import { ClientSession } from "mongoose";
+import { validateOrError } from "../../helpers/validator/validateOrError";
 
 export const UserModel = getModelForClass(User, {
     schemaOptions: {
@@ -22,6 +17,21 @@ export const UserModel = getModelForClass(User, {
     },
 });
 
+/**
+ * For extending User API.
+ *  ex) export class TeacherService extends BasicUserService(
+ *      TeacherModel,
+ *      tyeps: {
+ *          cls: Teacher,
+ *          createInput: TeacherCreateInput,
+ *          updateInput: TeacherUpdateInput
+ *      },
+ *      process.env.JWT_SECRET_TEACHER
+ *  ) { INPUT YOUR CLASS LOGICS }
+ * @param model extends IUserModel
+ * @param types extends IUser
+ * @param jwtSecret for jwt secret
+ */
 export const BasicUserService = <
     T extends IUser,
     CI_T extends IUserCreateInput,
@@ -45,7 +55,7 @@ export const BasicUserService = <
         ): Promise<DocumentType<T>> {
             return this.create(input, session, async (instance) => {
                 await instance.setPassword(input.password);
-                await validate(instance);
+                await validateOrError(instance);
             });
         }
 
