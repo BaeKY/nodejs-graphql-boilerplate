@@ -15,11 +15,11 @@ export class UserError {
     }
 
     @Field(() => String)
-    field: string;
+    field!: string;
 
     @Field(() => String)
-    value: string;
+    value!: string;
 
     @Field(() => String)
-    details: string;
+    details!: string;
 }

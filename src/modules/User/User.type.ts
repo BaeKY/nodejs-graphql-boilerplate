@@ -17,23 +17,23 @@ import {
 export class User extends IUser {
     @Field(() => UserType)
     @Prop({ required: true, enum: UserType, default: UserType.Normal })
-    type: UserType;
+    type!: UserType;
 }
 
 @InputType()
 export class UserCreateInput implements IUserCreateInput {
     @Field(() => String)
-    email: string;
+    email!: string;
 
     @Field(() => String)
-    phoneNumber: string;
+    phoneNumber!: string;
 
     @Field(() => String)
-    name: string;
+    name!: string;
 
     @Field(() => String)
     @Prop()
-    password: string;
+    password!: string;
 }
 
 @InputType()
@@ -48,10 +48,10 @@ export class UserUpdateInput implements IUserUpdateInput {
 @InputType()
 export class UserSignInInput {
     @Field(() => String)
-    email: string;
+    email!: string;
 
     @Field(() => String)
-    password: string;
+    password!: string;
 }
 
 export const _UserFilter = generateFilterType(User, Node, Timestamped, IUser);

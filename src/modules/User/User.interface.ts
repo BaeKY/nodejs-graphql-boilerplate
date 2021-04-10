@@ -8,9 +8,8 @@ import {
 import bcrypt from "bcryptjs";
 import { Prop } from "@typegoose/typegoose";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
-import { Filter } from "../../helpers/decorators/filter/FilterInputGenDecorator";
-import { Tag } from "../Common/Tag.type";
-import { Sort } from "../../helpers/decorators/sort/SortDecorator";
+import { Filter } from "../../helpers/decorators/filter/filter";
+import { Sorting } from "../../helpers/decorators/sort/SortDecorator";
 
 const BCRYPT_HASH_SALT = parseInt(process.env.HASH_SALT || "12");
 
@@ -31,48 +30,42 @@ export class IUser extends TimestampedNode {
     @Field(() => String)
     @Prop({ required: true })
     @Filter(["contains", "not_contains"], () => String)
-    name: string;
+    name!: string;
 
     @Field(() => UserType)
     @Prop({ required: true, enum: UserType })
-    type: UserType;
+    type!: UserType;
 
     @Field(() => String)
     @Prop({ required: true })
     @Filter(["contains", "not_contains", "in", "not_in"], () => String)
-    email: string;
+    email!: string;
 
     @Field(() => String)
     @Prop()
     @Filter(["contains", "not_contains", "in", "not_in"], () => String)
-    phoneNumber: string;
+    phoneNumber!: string;
 
     @Field(() => String, { defaultValue: "Asia/Seoul" })
     @Prop({ defualt: "Asia/Seoul" })
     @Filter(["contains", "not_contains", "in", "not_in"], () => String)
-    timezone: string;
+    timezone!: string;
 
     @Field(() => Float, { defaultValue: 9 })
     @Prop({ default: 9 })
     @Filter(["in", "not_in", "gte", "lte", "gt", "lt"], () => Float)
-    @Sort()
-    offsetHour: number;
+    @Sorting()
+    offsetHour!: number;
 
-    @Field(() => [Tag], { nullable: true })
-    @Prop()
-    @Filter(["in", "not_in", "gte", "lte", "gt", "lt"], () => [Tag])
-    @Sort(() => Tag)
-    test: Tag[];
-
-    @Prop(() => String)
-    private password: string;
+    @Prop({ required: false })
+    private password?: string;
 
     async setPassword(password: string) {
         this.password = await bcrypt.hash(password, BCRYPT_HASH_SALT);
     }
 
     async comparePassword(password: string) {
-        return await bcrypt.compare(password, this.password);
+        return this.password != null && await bcrypt.compare(password, this.password);
     }
 }
 @InterfaceType("IAdminUser", {
@@ -95,13 +88,13 @@ export abstract class AbsAdminUser extends IUser {
 })
 export class IUserCreateInput {
     @Field(() => String)
-    name: string;
+    name!: string;
 
     @Field(() => String)
-    email: string;
+    email!: string;
 
     @Field(() => String)
-    password: string;
+    password!: string;
 }
 
 @InputType({

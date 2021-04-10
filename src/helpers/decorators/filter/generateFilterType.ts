@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { Field, InputType, ClassType } from "type-graphql";
-import { getMetadataStorage as getTypeGraphQLMetadataStorage } from "type-graphql/dist/metadata/getMetadataStorage";
-import { DIVIDER, getMetadataStorage } from "../types";
-import { MetadataStorage } from "type-graphql/dist/metadata/metadata-storage";
-import { ObjectClassMetadata } from "type-graphql/dist/metadata/definitions/object-class-metdata";
-import { isClass } from "../../../utils/utils";
+import { Field, InputType, ClassType } from 'type-graphql';
+import { getMetadataStorage as getTypeGraphQLMetadataStorage } from 'type-graphql/dist/metadata/getMetadataStorage';
+import { MetadataStorage } from 'type-graphql/dist/metadata/metadata-storage';
+import { ObjectClassMetadata } from 'type-graphql/dist/metadata/definitions/object-class-metdata';
+import { DIVIDER, getMetadataStorage } from '../types';
+import { isClass } from '../../../utils/utils';
 
+
+/* eslint-disable */
 /**
  * Generate a type-graphql InputType from a @ObjectType decorated
  * class by calling the @InputType and @Field decorators
@@ -26,8 +28,8 @@ export const generateFilterType = <T>(
     const filterName = `_${graphQLModel.name}Filter`;
 
     const filterContainer = {
-        [filterName]: class {},
-    };
+        [filterName]: class { }
+    }
 
     const cls = filterContainer[filterName];
 
@@ -35,12 +37,12 @@ export const generateFilterType = <T>(
     InputType()(cls);
 
     Field(() => [cls], {
-        nullable: true,
-    })(cls.prototype, "AND");
+        nullable: true
+    })(cls.prototype, 'AND');
 
     Field(() => [cls], {
-        nullable: true,
-    })(cls.prototype, "OR");
+        nullable: true
+    })(cls.prototype, 'OR');
 
     const addField = generateAddFieldFunc(typeGraphQLMetadata, cls);
     addField(type);
@@ -48,7 +50,7 @@ export const generateFilterType = <T>(
 
     const result = () => cls;
     return result;
-};
+}
 
 const generateAddFieldFunc = <T>(
     typeGraphQLMetadata: MetadataStorage,
@@ -61,65 +63,59 @@ const generateAddFieldFunc = <T>(
         // name and use that for our filter name instead of the plain method name
         const graphQLField = typeGraphQLMetadata.fieldResolvers.find(
             (fr) => fr.target === type && fr.methodName === field
-        );
+        )
 
-        const fieldName = graphQLField ? graphQLField.schemaName : field;
+        const fieldName = (graphQLField != null) ? graphQLField.schemaName : field;
 
         const baseReturnType =
-            typeof getReturnType === "function" ? getReturnType() : String;
+            typeof getReturnType === 'function' ? getReturnType() : String;
 
-        if (isClass(baseReturnType) && !name) {
+        if (isClass(baseReturnType)) {
             generateAddFieldFunc(typeGraphQLMetadata, cls)(
                 baseReturnType,
-                String(fieldName)
+                `${name ? name + '_' : ''}${String(fieldName)}`
             );
         } else if (
             baseReturnType instanceof Array &&
-            isClass(baseReturnType[0])
+            baseReturnType.every(isClass)
         ) {
             generateAddFieldFunc(typeGraphQLMetadata, cls)(
                 baseReturnType[0],
-                String(fieldName)
-            );
+                `${name ? name + '_' : ''}${String(fieldName)}`
+            )
         } else {
             Field(() => baseReturnType, { nullable: true })(
                 cls.prototype,
-                `${name ? name.concat("_") : ""}${String(
-                    fieldName
-                )}${DIVIDER}eq`
-            );
+                `${name ? name.concat('_') : ''}${String(fieldName)}${DIVIDER}eq`
+            )
             Field(() => baseReturnType, { nullable: true })(
                 cls.prototype,
-                `${name ? name.concat("_") : ""}${String(
-                    fieldName
-                )}${DIVIDER}not_eq`
-            );
+                `${name ? name.concat('_') : ''}${String(fieldName)}${DIVIDER}not_eq`
+            )
             for (const operator of operators) {
                 // @Field에 들어가는 리턴타입임.
                 const returnTypeFunction =
-                    ["in", "not_in"].includes(operator as any) &&
-                    !(baseReturnType instanceof Array)
+                    ['in', 'not_in'].includes(operator as any) &&
+                        !(baseReturnType instanceof Array)
                         ? () => [baseReturnType]
-                        : () => baseReturnType;
+                        : () => baseReturnType
 
                 Field(returnTypeFunction, { nullable: true })(
                     cls.prototype,
-                    `${name ? name.concat("_") : ""}${String(
+                    `${name ? name.concat('_') : ''}${String(
                         fieldName
                     )}${DIVIDER}${operator}`
-                );
+                )
             }
         }
     }
-};
+}
 
 const getFiltersData = (type: Function) => {
-    const metadataStorage = getMetadataStorage();
-    const filtersData = metadataStorage.filters.filter(
-        (f) => f.target === type
-    );
-    return filtersData;
-};
+    const metadataStorage = getMetadataStorage()
+    const filtersData = metadataStorage.filters.filter((f) => f.target === type)
+    return filtersData
+}
 
 export const getTypeGraphqlModel = (
     type: Function,
@@ -127,15 +123,15 @@ export const getTypeGraphqlModel = (
 ): ObjectClassMetadata => {
     const objectTypesList = [
         ...typeGraphQLMetadata.objectTypes,
-        ...typeGraphQLMetadata.interfaceTypes,
-    ];
+        ...typeGraphQLMetadata.interfaceTypes
+    ]
     const graphQLModel: ObjectClassMetadata | undefined = objectTypesList.find(
         (ot) => ot.target === type
-    );
-    if (!graphQLModel) {
+    )
+    if (graphQLModel == null) {
         throw new Error(
             `Please decorate your class "${type}" with @ObjectType if you want to filter it`
-        );
+        )
     }
-    return graphQLModel;
-};
+    return graphQLModel
+}

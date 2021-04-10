@@ -1,8 +1,8 @@
 import { ValidationError } from "class-validator";
 import { ClassType, Field, ObjectType } from "type-graphql";
-import { UserError } from "./error.interface";
+import { UserError } from "./Error.type";
 
-const CLASS_NAME = "MutationPayload";
+const CLASS_NAME = "MutationResponse";
 
 @ObjectType()
 export class BasicMutationResponse {
@@ -29,6 +29,10 @@ export class BasicMutationResponse {
         this.errors.push(
             ...errors.map((v) => UserError.fromValidationError(v))
         );
+    }
+
+    setData(..._: any) {
+        // empty
     }
 }
 

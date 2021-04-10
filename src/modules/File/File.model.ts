@@ -1,12 +1,6 @@
-import { Prop } from "@typegoose/typegoose";
-import { Field, ObjectType } from "type-graphql";
-import { Tag, OptionsForPropMap } from "../Common/Tag.type";
+import { ObjectType } from "type-graphql";
 import { Node, Timestamped } from "../Core/Core.interface";
-import { AbsFile } from "./File.interface";
+import { IFile } from "./File.interface";
 
-@ObjectType({ implements: [Node, Timestamped, AbsFile] })
-export class File extends AbsFile {
-    @Field(() => [Tag])
-    @Prop(OptionsForPropMap)
-    tags: Tag[];
-}
+@ObjectType({ implements: [Node, Timestamped, IFile] })
+export class File extends IFile {}

@@ -4,15 +4,20 @@ import { IsUrl } from "class-validator";
 import { FileUpload } from "../../types/scalars/Upload.scalar";
 import { S3 } from "aws-sdk";
 import { Node, Timestamped, TimestampedNode } from "../Core/Core.interface";
+import { OptionsForPropMap, Tag } from "../Common/Tag.type";
 
 export interface IFile {
-    name: string;
-    extension: string;
-    uri: string;
     s3Key: string;
+    filename: string;
+    extension: string;
+    url: string;
+    tags?: Tag[];
     uploadToS3(
         file: Promise<FileUpload>,
-        options: { filename?: string; tagSets?: S3.Tag[] }
+        options?: {
+            filename?: string;
+            tagSets: S3.Tag[];
+        }
     ): Promise<string>;
     deleteOnS3(): Promise<boolean>;
 }
@@ -21,25 +26,25 @@ export interface IFile {
     implements: [Node, Timestamped],
     description: "Default File Interface",
 })
-export abstract class AbsFile extends TimestampedNode implements IFile {
+export abstract class IFile extends TimestampedNode {
     @Field(() => String)
     @Prop()
-    s3Key: string;
+    s3Key!: string;
 
     /**
      * 파일이름 중복은 알아서 처리 ㄱ
      * @param file
-     * @param opt
+     * @param options
      * @returns
      */
     async uploadToS3(
         file: Promise<FileUpload>,
-        opt: {
+        options?: {
             filename?: string;
             tagSets?: S3.Tag[];
         }
     ): Promise<string> {
-        const { filename, tagSets } = opt;
+        const { filename, tagSets } = options || {};
         const upload = await file;
 
         const t = await new S3.ManagedUpload({
@@ -66,14 +71,18 @@ export abstract class AbsFile extends TimestampedNode implements IFile {
 
     @Field(() => String)
     @Prop()
-    name: string;
+    filename!: string;
 
     @Field(() => String)
     @Prop()
-    extension: string;
+    extension!: string;
 
     @Field(() => String)
     @Prop()
     @IsUrl()
-    uri: string;
+    url!: string;
+
+    @Field(() => [Tag], { nullable: true })
+    @Prop(OptionsForPropMap)
+    tags?: Tag[];
 }

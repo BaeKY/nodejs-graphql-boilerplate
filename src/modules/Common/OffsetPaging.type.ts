@@ -1,6 +1,6 @@
 import { ModelType } from "@typegoose/typegoose/lib/types";
 import { ClassType, ObjectType, Field, Int, InputType } from "type-graphql";
-import { toMongoQuery } from "../../helpers/decorators/filter/FilterDecoratorFunction";
+import { toMongoQuery } from "../../helpers/decorators/filter/filterParser";
 
 @ObjectType()
 export class PageInfo {

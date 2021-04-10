@@ -1,13 +1,15 @@
-import { getMetadataStorage, ReturnTypeFunc } from "../types";
+import { getMetadataStorage, ReturnTypeFunc } from '../types'
 
-export function Sort(returnTypeFunction?: ReturnTypeFunc): PropertyDecorator {
+export function Sorting(
+    returnTypeFunction?: ReturnTypeFunc
+): PropertyDecorator {
     return (prototype, field: string | symbol) => {
-        const metadataStorage = getMetadataStorage();
+        const metadataStorage = getMetadataStorage()
         metadataStorage.sorting.push({
             field,
-            sortOpts: ["desc", "asc"],
+            sortOpts: ['desc', 'asc'],
             target: prototype.constructor,
-            getReturnType: returnTypeFunction || (() => String),
-        });
-    };
+            getReturnType: returnTypeFunction ?? (() => String)
+        })
+    }
 }

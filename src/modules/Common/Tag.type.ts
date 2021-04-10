@@ -1,14 +1,21 @@
 import { mongoose, Prop } from "@typegoose/typegoose";
-import { Field, ObjectType } from "type-graphql";
+import { Field, InputType, ObjectType } from "type-graphql";
+import { Filter } from "../../helpers/decorators/filter/filter";
+import { Sort } from "../../helpers/decorators/sort/SortDecorator";
 
+@InputType("TagInput")
 @ObjectType()
 export class Tag {
     @Field(() => String)
     @Prop()
+    @Filter(["in", "not_in", "contains", "not_contains"], () => String)
+    @Sort()
     key: string;
 
     @Field(() => String)
     @Prop()
+    @Filter(["in", "not_in", "contains", "not_contains"], () => String)
+    @Sort()
     value: string;
 }
 

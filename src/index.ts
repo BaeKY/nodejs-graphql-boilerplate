@@ -21,7 +21,7 @@ setGlobalOptions({
         timestamps: true,
     },
 });
-import app from "./app";
+import app from "./app/app";
 import { IS_DEV_ENV } from "./constants";
 
 const port = parseInt(process.env.PORT || "4000");
@@ -38,7 +38,7 @@ const main = async (): Promise<void> => {
             const realApp = await app.init();
             realApp.listen({ port }, () => {
                 if (IS_DEV_ENV) {
-                    console.log("Debud Mode on!");
+                    console.log("Debug Mode on!");
                 }
                 console.log(
                     `Server listening at: http://${process.env.SERVER_URL}:${port}${process.env.GRAPHQL_ENDPOINT}`

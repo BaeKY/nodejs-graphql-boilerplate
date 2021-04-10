@@ -64,9 +64,9 @@ export class Verification extends TimestampedNode {
             const now = Date.now();
             return new Date(
                 now +
-                    (this.target === VerificationTarget.Email
-                        ? 1 * ONE_HOUR
-                        : 5 * ONE_MINUTE)
+                (this.target === VerificationTarget.Email
+                    ? 1 * ONE_HOUR
+                    : 5 * ONE_MINUTE)
             );
         },
     })
@@ -86,16 +86,16 @@ export class Verification extends TimestampedNode {
 @InputType()
 export class VerificationCreateInput {
     @Field(() => String)
-    payload: string;
+    payload!: string;
 
     @Field(() => VerificationTarget)
-    target: VerificationTarget;
+    target!: VerificationTarget;
 }
 
 @InputType()
 export class VerificationVerifyInput extends VerificationCreateInput {
     @Field(() => String)
-    code: string;
+    code!: string;
 }
 
 export const VerificationMutationPayload = MutationResponse(

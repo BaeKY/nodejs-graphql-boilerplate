@@ -27,23 +27,20 @@ export class CoreResolver {
     async errorHandlingTest(
         @Arg("input", () => String, { nullable: true }) input?: string
     ): Promise<BasicMutationResponse> {
-        return handleBusinessLogicError(
-            new BasicMutationResponse(),
-            async (response) => {
-                if (!input) {
-                    throw new Error("Nothing writes...");
-                }
-                if (input?.toLowerCase() === "error") {
-                    const error = new ValidationError();
-                    error.property = "input";
-                    error.value = input;
-                    error.constraints = {
-                        length: `${error.property} is too long.`,
-                    };
-
-                    throw [error];
-                }
+        return handleBusinessLogicError(async (response) => {
+            if (!input) {
+                throw new Error("Nothing writes...");
             }
-        );
+            if (input?.toLowerCase() === "error") {
+                const error = new ValidationError();
+                error.property = "input";
+                error.value = input;
+                error.constraints = {
+                    length: `${error.property} is too long.`,
+                };
+
+                throw [error];
+            }
+        });
     }
 }

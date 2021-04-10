@@ -15,3 +15,4 @@ logs
 schema.gql
 *.jpg
 *.png
+data

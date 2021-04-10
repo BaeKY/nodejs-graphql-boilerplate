@@ -32,11 +32,11 @@ export abstract class Node extends Base {
 export abstract class Timestamped extends Base implements TimeStamps {
     @Field(() => Date)
     @Prop()
-    createdAt: Date;
+    createdAt!: Date;
 
     @Field(() => Date)
     @Prop()
-    updatedAt: Date;
+    updatedAt!: Date;
 }
 
 @ObjectType({
@@ -46,9 +46,9 @@ export abstract class Timestamped extends Base implements TimeStamps {
 export abstract class TimestampedNode extends Node implements Timestamped {
     @Field(() => Date)
     @Prop()
-    readonly createdAt: Date;
+    readonly createdAt!: Date;
 
     @Field(() => Date)
     @Prop()
-    updatedAt: Date;
+    updatedAt!: Date;
 }
